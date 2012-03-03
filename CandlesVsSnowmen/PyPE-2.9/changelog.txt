@@ -1,0 +1,2050 @@
+﻿
+#--------------------------------- PyPE 2.9 ----------------------------------
+(fixed) another bug related to realtime parsing.
+(fixed) typo in stc-styles.rc.cfg that is shipped with PyPE that can cause
+PyPE to fail to load on some platforms, thank you to Rob McMullen, the writer
+of Peppy, for pointing out the error.
+(fixed) bug with OS X disabling undo/redo cut/copy.
+(changed) main documents tab to use AuiNotebook to deal with the broken native
+notebook control on OS X.  Seems to work as far as I can tell, though
+sometimes when you click the "scroll" button repeatedly, it doesn't work for
+every click.
+(changed) all tabs now use AuiNotebook for internal consistency, and because it
+just works better than the native control on OS X.
+(changed) the behavior of the search tab (find in files) to fully use a
+secondary thread for parsing, only putting results/events into the wxPython
+layer to update things.  This significantly reduces the thread creation churn
+(I have no idea why I used a repeated callback semantic; maybe because it
+would guarantee a few things about starting/stopping, I don't know), which on
+OS X, allows you to search and edit documents at the same time, something that
+other platforms have been enjoying for years ;) .
+(changed) made the ReplaceAll functionality incrementally increase the number
+of replacements before updating the GUI.  It used to be 20 replacements at a
+time. Now it will start at 30, then multiply that number by 1.5 each block, up
+to a maximum of 1000 replacements before updating the GUI.  This should
+significantly increase the speed of large replacements, though there will be a
+longer delay between screen updates.
+(fixed) PyPE will now actually not close down on OS X if when prompted to save
+an unsaved document you say "cancel".  The benefit of not losing data on other
+platforms has now come to OS X!
+(noticed) OS X screen updates are disgustingly slow.  It's not PyPE's fault,
+it's the drawing method that Scinitlla uses on OS X.
+(fixed) module browser (the Name and Line tools) to work when confronted with
+function decorators.  We will have to wait a bit for Python 2.6 before we can
+support class decorators.
+(fixed) moved file modification check to a secondary thread, which keeps the
+GUI from stalling when files are on slow volumes (remote mounts, etc.), and
+reduced check frequency from *every* time the application receives focus to
+at most once every 60 seconds (it is still signaled when PyPE gets application
+focus).
+(changed) switched to using a secondary thread + sched module variant for
+handling delayed calls, etc.
+(changed) switched to using a single wx.Timer instance + sched module variant
+for handling delayed calls, etc., in order to fix shutdown issues and to
+improve latencies for immediate calls.
+(fixed) unrepr for strings so that find/replace of '\t', etc., work again.  I
+never tested my str_unrepr() stuff :/ .
+(cleaned) out some older code that is no longer necessary.
+(tweaked) file modification checker to ignore the results of the modification
+check if it took more than 30 seconds to complete.
+(fixed) bug where if you try to open a file and it fails due to a unicode
+decoding error, you could get an unsightly box in the corner.
+(fixed) the ugly flashing in the upper-left corner when opening documents.
+(fixed) the fast longest common subsequence algorithm (character doublings
+were effectively ignored, so search terms of 'hello' were the same as 'helo').
+(added) tool to the "Documents" tab to allow you to search a set of known
+paths for files to open (this also includes recently open files).  It scores
+the subsequence search to pull "better" matches to the top.
+(fixed) when pasting multiple lines in files with tab indentation, an extra
+blank line will no longer be added before the pasted lines.
+(fixed) description text for spaces to tabs transform.
+(changed) rather than displaying every "file deleted" or "file modified" in
+it's own dialog (which gets bothersome when you lose a network mount), you now
+get one dialog for "file deleted" and one dialog for "file modified".
+(added) the ability to automatically detect the dominant tab/indent settings
+used per file, and use that as the default (which is quite useful if you have
+recently switched indent styles, and/or if you have to use a different indent
+style for work and not work).
+(fixed) autocomplete breakage due to the parsers module movement.
+(added) new parser and parser backend to replace the old Python parser with
+one based on compiler.ast .  It's a little slower than the previous parser,
+and uses a bit more memory to start, but it offers much more opportunities for
+improving PyPE for 2.9 and beyond.  In the process, I discovered a bug with
+the old parser.suite-based parser that I had borrowed from Synopsis (in
+addition to the decorator bug that I'd already fixed for 2.9), which was that
+it doesn't know about functions or classes that are in try/except/finally or
+even if/whatever clauses.  Uck.
+(changed) tweaked some small color display options for latex (subsections are
+now colored green, they used to be blue).
+(added) crappy parser for cheetah and spitfire templates (.tmpl and .spt),
+they only pull #block and #def for now, but they understand block nesting.
+(added) True, False, as, and with as Python keywords
+(cleaned) up some repeated os.listdir() calls that weren't necessary for
+keeping the macro list updated.  It now just updates when the window gets
+focus.
+(added) lexical scope traversal for Python to discover methods and locals.
+(added) the pulling of self/cls/klass attribute assignments for Python
+instance/class variables.
+(added) optional global filter for all parsed documents.
+(added) scoring method for filter tables (better matches float to the top of
+the listing).
+(fixed) long-standing issue with PyPE signaling a syntax error on the last
+line in some situations.
+(added) _ast-based parser for Python 2.5 and later (compiler.ast is deprecated
+in 2.6, and removed in 3.0).  The new parser is a bit faster on large files
+(1.2 seconds vs. 1.4 seconds to parse pype.py on my machine), and should be
+future-proof.
+(changed) switched to using .png files for images, closing bug 1750959.
+(fixed) opening of utf8 files that lack a coding directive or a BOM.
+(fixed) sorting of line count in when using the new parser.
+(added) currently open documents to the quick browse area on the documents
+tab.
+(added) different background color for recently opened documents and currently
+open documents in the quick browse section on the documents tab.
+(fixed) PyPE will now check for tab/indent preferences properly when opening a
+file not in it's history.
+(added) listing of currently open files to the quick browse section on the
+documents tab.
+(fixed) dialog opening on multi-monitor Windows configurations.
+(tweaked) indent discovery code.
+(fixed) label handling in some situations with the new AST-based parser.
+(removed) duplicate entries in the quick browse section of the documents tab.
+(added) the ability to remove items from history in the quick browse section
+of the documents tab.
+(added) drag and drop along the notebook tab list.
+(fixed) accidental document list borkage.
+
+
+#-------------------------------- PyPE 2.8.8 ---------------------------------
+(fixed) a bug related to realtime parsing of non-ascii Python source.
+
+
+#-------------------------------- PyPE 2.8.7 ---------------------------------
+(fixed) some bugs related to the parsers module movement.
+(fixed) ordering of user profile path discovery to not break when confronted
+with insane 'HOME' environment variable on Windows (will use USERPROFILE or
+HOMEDRIVE/HOMEPATH first).
+(fixed) unrepr mechansim can now handle negative value storage for disabled
+realtime options, etc.
+
+
+#-------------------------------- PyPE 2.8.6 ---------------------------------
+(fixed) a bug with "Wrap Try/Except" as per emailed bug report from Ian York.
+(added) ability to choose what port PyPE will listen on via --port= .
+(fixed) workspaces in wxPython 2.8+, patch thanks to Craig Mahaney.
+(added) explicit exclude dirs for find in files, patch thanks to Craig
+Mahaney.
+(added) paste and down mechanism to paste and move the cursor down, patch
+thanks to Craig Mahaney.
+(added) delete right mechanism to delete everything from the cursor to the end
+of the line, patch thanks to Craig Mahaney.
+(added) delete line mechanism to delete the current line, patch thanks to
+Craig Mahaney.
+(added) paste rectangle command for rectangular pasting, patch thanks to Craig
+Mahaney.
+(fixed) support for alternate background colors thanks to bug report from
+Craig Mahaney.
+(added) macro support to Craig Mahaney's added functionality.
+(added) implementation for regular expression replacements, possibly to be
+integrated as part of a 'replace in all open documents' in the future.
+(added) automatic spellcheck for text and tex documents of up to 200,000 bytes
+in size.  Will only spellcheck if the user has enabled "check syntax" in the
+"Realtime Options".
+(fixed) issue when trying to save language settings when cursor position is
+not to be saved.
+(added) support for \chapter section delimiter in *tex files.
+(fixed) issue that prevented the highest level source listing from being
+sorted in the Name and Line sorted source trees.
+(changed) rather than reading and executing a file for configuration loading,
+we now use a variant of the 'unrepr()' mechanism with support for True/False.
+(changed) find/replace bar now uses variant of 'unrepr()' rather than the
+compiler module directly.
+(changed) moved parsers.py to plugins and stopped using import * to get its
+contents.
+
+
+#-------------------------------- PyPE 2.8.5 ---------------------------------
+(fixed) issue where double-clicking on a result while search was still going
+wouldn't actually go to the line of the result.
+(fixed) macros that use the line-based abstraction will now cause the parse
+timers to restart (just like hitting a keyboard key).
+(added) 'GotoLineS' utility method on stc instances for easy navigation to and
+selection of an entire line.
+(added) and disabled tagging tool.
+(fixed) commented/uncommented line discovery for latex documents.
+(fixed) vim option discovery when opening up latex documents.
+(added) the ability to disable individual tools if desired (disabling a tool
+prevents it from being updated, and may reduce tool refresh times).
+(fixed) calltips.
+(fixed) removed debug printouts for autocomplete.
+(fixed) View -> Go To Line Number, now goes to the proper line (not the one
+after), and now will always show the content of the line.
+(changed) stopped using combined file/text drop targets, drags could cause
+extra copies of text to be pasted at the end of the document.
+(added) ability to have a read-only view of a document in the wide or tall
+tools.  See View -> Split Wide and Split Tall.  Note that you can have two
+different documents displayed in either split.  See View -> Unsplit for hiding
+removing the view to the documents (the split views persist even if you close
+the open documents, but will not update if you close and re-open the closed
+document).
+(changed) moved search code (for the Search tab) use a separate thread in
+order to increase interactivity, and to prevent lockups due to bad regular
+expressions.
+(fixed) checkbox updating for showing or hiding wide or tall tools when using
+the keyboard to toggle them on some platforms.
+(known issue) sometimes when attempting to use keyboard shortcuts, PyPE will
+not recognize the keyboard shortcuts.  Click on an open document to allow the
+keyboard shortcuts to work again.
+(fixed) the 'Ignore .subdirs' option in the 'Search' tab; if you add a path of
+foo/, and there was a foo/bar/.subdir, PyPE will now ignore foo/bar/.subdir .
+PyPE mistakenly only previously ignored foo/.subdir .
+(fixed) Option Document -> Save Position will now properly go to the right
+position when there are document folds present.
+(changed) the way tree controls update their content during refresh.  Should
+prevent unnecessary horizontal scrolling as was the case in PyPE 2.8, and be
+noticably faster.
+(fixed) classes or functions with the same names will no longer all be
+expanded in the browsable source trees when one is expanded.
+(fixed) icon update issues in the browsable source trees when classes,
+functions, or methods lose child nodes.
+(fixed) filter tool to not list #-- stuff -- style labels as having negative
+lengths, instead will have lengths of zero, and won't affect line counts
+otherwise.
+(changed) the included stc-styles.rc.cfg to make // comments the standard font
+size.
+(changed) adjusted the layout of the Find/Replace bar to use less horizontal
+space (really only noticable in the Replace bar).
+(fixed) pasting in a shell when non-editable data is selected will no longer
+change the non-editable data or result in an error dialog.
+
+
+#--------------------------------- PyPE 2.8 ----------------------------------
+(changed) reorganized some of the options menu to make more sense and to fit
+on 800x600 resolution screens.  If you have any hotkeys defined, you may need
+to define them again.
+(fixed) situation where some timer-based events would occur more often than
+they should due to a bug in wxPython 2.6 wx.Timer instances.
+(added) tracking of how long the user has used PyPE (not just the program
+being open, but of it actually being interacted with).  You can discover how
+long you have used PyPE in Help -> About.
+(fixed) macro recording where recording a macro that included a paste without
+smartpaste enabled would include two paste actions in the resulting macro.
+(added) --standalone command line option to allow for saving PyPE's persistent
+state information in the same path as PyPE, allowing for the "portable"
+distribution of PyPE to be carried around on a flash drive, for example.
+(fixed) autocomplete inside class bodies and outside methods.
+(fixed) autocomplete and calltips when using tabs.
+(fixed) problem where PyPE would not remember how wide or tall the tools were
+if they were hidden when PyPE closed.
+(fixed) when swapping the position of the tools and editor (Editor on Top, and
+Editor on Left toggling), PyPE will now preserve editor and tool size.
+(fixed) opening a document in OSX could sometimes cause an exception even if
+the file was opened properly.
+(added) "Save Copy As" functionality to the File menu.
+(added) tabs to spaces and spaces to tabs conversion to the Transforms menu.
+(added) the reading and using of the Vim options cul, nocul, et, noet, sw,
+sts, ts, and their aliases (including 'inv' prefix or '!' suffix for toggles
+and both '=' and ':' assignment operators for values) for files that are first
+opened.
+(changed) made the 'subsequence' search for the Filter tool much faster.
+(added) support for displaying labels created with
+"Transforms -> Insert Comment" in the "Name", "Line", and "Filter" tools.
+This works similarly to such entries in SPE (see help for more information).
+(added) relevant label documentation.
+(changed) PyPE now remembers which entries were expanded, folded, selected,
+and the first visible item (if it persists) after the Name or Line tools have
+been refreshed (via Document -> Refresh).
+(changed) added support for mixed-case encoding directives.
+(changed) renamed 'Options -> Shell' to 'Options -> Shell Output'.
+(fixed) issue with macros and shells.
+(added) optional "real time" syntax check with error highlight and tool
+refresh.  See "Options -> Realtime Options" and the help for more information.
+(fixed) todo sorting.
+(fixed) unnecessary debug printout when all documents have been closed.
+(fixed) all shells are now polled with a single wx.Timer instance.  In
+previous versions of PyPE, interpreters used wx.FutureCall instances to poll
+themselves, which may have caused a memory leak on some platforms.
+(fixed) the replace bar's "Replace All" button used to use wx.FutureCall to
+handle re-calling itself so that PyPE could remain responsive while replacing
+was going on.  wx.FutureCall use has been replaced by one timer instance per
+find/replace bar.  This may fix a memory leak on platforms that used the
+replace all button for a large number of replacements.
+(fixed) the Search tab will now expand folded code as necessary to make any
+double-clicked-on result fully visible.
+(fixed) run document macro (on linux) by removing it and replacing it with a
+'File -> Run Current File' menu item.  Only supports files with extensions of
+.py, .pyw, .htm, .html, .shtm and .shtml .
+(fixed) run selected text macro (on linux) by removing it and replacing it
+with a 'File -> Run Selected Code' menu item.
+(added) support for viewing line ending characters.
+(fixed) 'view whitespace' preference now saved.
+(fixed) bug with reordering documents in a (small distribution) prerelease.
+(changed) made spell checker "smarter" to know that when you have a region of
+text selected, you want to check the spelling of that region, but if you don't
+have anything selected, you want to check the spelling of the whole document.
+(fixed) default cursor position if you have used the Options -> Save Settings
+when Document -> Save Position was enabled.
+(fixed) the log panel now has scrollbars and scrolls to the end as it receives
+information to log.
+(fixed) bug where the first document opened during startup would have its
+syntax checked regardless of whether it was a Python file or not.
+
+
+#-------------------------------- PyPE 2.7.2 ---------------------------------
+(changed) files with at least 20,000 lines or at least 4 megs will no longer
+have their bookmark or fold states saved on close.  This significantly reduces
+the time to close (and sometimes open) large files.
+(fixed) code that uses MainWindow.exceptDialog() will now properly create a
+dialog.
+(fixed) wxPython 2.7 incompatibility in the Browsable directory tree in
+wxPython 2.7 - 2.7.1.2 .
+(removed) some unnecessary debug printouts.
+(changed) the 'Search' tab to better handle narrower layouts.
+(fixed) the 'Ignore .subdirs' option in the 'Search' tab now gets disabled
+along with 'Search Subdirectories' when applicable.
+(fixed) error when opening changelog.txt on unicode-enabled installations.
+(fixed) spell checker for unicode-enabled platforms.
+(fixed) case where various checkmarks in the Documents menu wouldn't update
+when a document was opened, closed, or created on some platforms.
+(added) --font= command line option for choosing the font that the editor will
+use.
+
+
+#-------------------------------- PyPE 2.7.1 ---------------------------------
+(fixed) bug related to wxPython 2.7 conversion.
+
+
+#--------------------------------- PyPE 2.7 ----------------------------------
+(fixed) possible race condition in the 'kill macro thread' code.
+(fixed) trigger expansion 'input' handling for characters with code points 
+greater than 127 (basically all non-US-english characters).
+(fixed) problem when trying to close a shell on Unicode PyPE with unicode
+characters.
+(changed) starting up PyPE no longer creates the directory tree initially.  It
+will now be created the first time you click on the 'Browse...' tab after PyPE
+has started up.  This change removes the initial delay when starting PyPE up,
+and removes the floppy drive seek on platforms with floppy drives.
+(added) better Python interpreter discovery and selection.  Checks the
+registry on Windows, and checks the environment PATH on all platforms.  Will
+follow symlinks, etc., and allows for the user to browse for a Python not on
+their path.
+(changed) sample 'Run Current File' macro to include stubs for other types of
+files, and to use the Python interpreter chosen for the Python Shell.
+(added) sending SIGINT to shells on non-Windows platforms.
+(fixed) hitting the escape key now closes the autocomplete and calltip
+windows.  Previously the autocomplete window was very difficult to get rid of.
+(added) method autocomplete for self.? methods on the current class, enabled
+by default when autocomplete is enabled.
+(added) documentation about the sample macros shipped with PyPE.
+(added) documentation about what to expect when starting to use PyPE when
+coming from another editor/ide.
+(added) optional (on by default) colored icons next to function, method, and
+class names in the source trees, based on how 'private' they are according to
+Python naming semantics.
+(changed) Swapping the position of the editor via "Options -> Editor on top"
+or "Options -> Editor on left" no longer require a restart.
+(fixed) linux GTK platforms no longer have strange bottom/right toolbar
+resizing artifacts (the 'resize' cursor won't show unless you are actually on
+the sash), as long as you have at least one document open.
+(fixed) linux GTK platforms now have a working scrolled 'search' tab.
+(fixed) bug where resizing PyPE to be too short would cause PyPE to crash on
+some platforms.
+(fixed) exception when closing shells on slower platforms.
+(added) saving of the sash position in the find in files tab between PyPE
+restarts.
+(fixed) Browse... tab's Pathmark -> Add Pathmark .  You can create new
+pathmarks again!  I don't know when this was broken.
+(fixed) searching with the Search tab will now stop while searching within a
+file if you hit "Stop Search".  Previously it would finish a file before
+actually stopping.
+(fixed) explicit or implicit multiline searches with the Search tab will now
+have the GUI refresh while searching a file.  Previously it would hang PyPE
+when processing each file.
+(fixed) unecessary "would you like to save?" dialog when closing down a newly
+created empty document.
+(fixed) potential error when switching between PyPE and other applications 
+when a document includes characters not encodable by the currently specified
+encoding.
+(changed) made PyPE use the wx namespace everywhere.
+(added) support for wxPython 2.7 prerelease.
+(added) support for recent Scintilla 'round box' indicator for shell output.
+(fixed) Transforms->Wrap try/except/finally .
+(added) ability to ignore subdirectories with a leading period when searching
+"Directories" in the Search tab.
+
+
+#-------------------------------- PyPE 2.6.5 ---------------------------------
+(added) command line option for setting the base font size of the text in the
+editor window.
+(added) documentation for 2.6.3 features: lines.targetlines[i] for the
+manipulation of the stc's target attribute, as well as the hotkeydisplay and
+hotkeyaccept variables defined for macros (and how to get usable values).
+(fixed) error on startup when the path to a user profile contains a character
+in the ascii 128-255 range.  Bug report thanks to Ianare Sevi.
+(fixed) closing shells causing a "do you want to save?" dialog.
+(fixed) lack of shell number/type in the documents list and tabs.
+(added) method to easily set clipboard data for macros, etc., (use
+_pype.SetClipboardText(text), will return if it was successful or not).
+(added) method to strip/reindent shared leading whitespace from a string, use
+self._StripPrefix(string, newindent=0, include_firstline=1) .
+(added) new macro sample for 'Run selected text in Python Shell'
+(fixed) maximization + close removing PyPE's size/position information.  Thank
+you to Jonathan Henry for the report and patch.
+(fixed) line number margin not being wide enough when documents have many
+lines.  Thank you to Jonathan Henry for the report and patch.
+(fixed) AttributeError when opening files if you are using a slightly older
+version of wxPython.
+(fixed) PyPE and Command Shells not producing prompts and/or not working on
+Mac and Linux.  Thank you to Ernesto Costa for the bug report.
+(fixed) PyPE will no longer indiscriminately add additional lines to your
+files when manipulating the last line (now will only add an additional line if
+your last line ends with a line ending character.
+(fixed) 'Run selected text in Python Shell' macro.
+(added) new macro sample for "Run current file", currently supports .py files.
+(fixed) lack of shell name when using either of the sample "Run" macros.
+(fixed) when closing a shell on non-Windows platforms, it should now properly
+kill the process tree from that shell.
+(added) search in commented lines support for non-Python languages.
+(added) option to search in uncommented portions of lines for all languages.
+(fixed) todo discovery for C/C++ files.
+(added) "Strict Todo" option, which requires todos to be prefixed with //>,
+%>, #>, or ##> for C/C++, TeX/LaTeX, and Python respectively.  Ignored for xml
+and html, because requiring it for them would be silly.
+(fixed) %L handling for triggers.
+(fixed) Options->One Tab now properly displays the current editor state.
+(fixed) Smart Paste when there is a selection.  Will now properly indent the
+first line; previously the first line would get incorrect indentation.
+(fixed) a condition where macros in Python 2.3 wouldn't die after 5 seconds
+under some situations (the macro named "Timeout Failure in Python 2.3" is now
+named "Timeout Non-Failure #3 in Python 2.3").
+(added) support for html/xml <?xml encoding=['"]...['"]?> discovery in the
+first two lines of the source file.  Does not assume utf-8 as per spec:
+http://www.w3.org/TR/2000/REC-xml-20001006#NT-EncodingDecl due to backwards
+compatibility concerns.  Users desiring utf-8 decoding support should make
+sure that their xml/html files include a utf-8 encoding directive or BOM at
+the beginning of their file.
+(changed) slightly the behavior of encoding discovery during load/save of a
+source file.  In most cases, this will not change how a file is loaded or
+saved, but it is much easier to understand, and succeeds in more cases than it
+used to.  See the help/readme for more information on PyPE's current behavior
+and how it differs from the old behavior.
+(added) dragging and dropping of both files and text onto the editor control
+simultaneously, thanks to Anthony Wiese.  Dropping text onto the editor now
+has the same behavior as pasting with the cursor at that particular position.
+(updated) the documentation with information about strict todos, and finished
+an incomplete sentence about C/C++ parsing.
+(added) message to non-Windows/Linux platforms that the shell may not provide
+a prompt, even if it is otherwise working.
+(added) support for utf-32 variants on platforms where they are supported.
+
+
+#-------------------------------- PyPE 2.6.3 ---------------------------------
+(changed) only per-document state information that is different from the
+default for the current file's type will actually be stored when the
+document's state is saved.  This should reduce the size of PyPE's saved
+configuration information, as well as allow for new user-defined default
+options to be propagated to previously opened documents easier.
+(added) documentation describing how to change the default settings for a
+language.
+(added) automatic manifest creation and insertion for windows binary releases,
+to display with user-defined Windows XP themes on XP where enabled.  Feature
+thanks to Ianare Sevi.
+(added) the ability to choose an indicator and color for the output produced
+by the Python or command shells.
+(fixed) running PyPE via pype.pyw on any platform.
+(added) close document button to the (optional) toolbar, it is immediately
+after the "save as" button.
+(added) option to choose image buttons or text buttons in the macro tab.  This
+fixes an unintended change in PyPE 2.6.2 that caused the macro buttons to be
+text only.
+(added) optional 'recent documents' list to the documents tab, which includes
+the 128 most recently closed documents.
+(added) alternate user profile discovery on Windows.
+(fixed) you can no longer select more than one file in the open documents
+listing.
+(fixed) 'activating' multiple documents in the recently open documents list
+will now open all of them up.
+(added) clicking the 'Remove' button in the recently open documents list will
+remove all selected documents from the list.
+(changed) PyPE won't load the user-supplied dictionary.txt until it is needed,
+and will unload it after 10 minutes of non-use.  This may reduce memory usage
+for users with large dictionaries, and may make PyPE more responsive to spell
+check commands after PyPE has been idle for a long period.
+
+
+#-------------------------------- PyPE 2.6.2 ---------------------------------
+(added) automatic conversion for line endings during paste.
+(fixed) continuous exceptions being produced when using shells.
+(fixed) cursor position information for shells.
+(fixed) cursor position information now updates only when necessary.
+(added) 'Document -> Highlight Current Line' to optionally show the current
+line with a different background color.
+(added) 'Options -> Set Line Color' to change the default line background
+color for the "Highlight Current Line" option above.
+
+
+#-------------------------------- PyPE 2.6.1 ---------------------------------
+(added) FAQ topic in the help/readme explaining where ideas for PyPE's
+features come from.
+(fixed) autoindent for XML/HTML when your cursor is to the left of some tags.
+(fixed) autoindent for XML/HTML when non-opening tags are to the left of the
+cursor (br, p, input, etc.).
+(changed) significantly improved the speed at which the 'slow' parser is able
+to parse, thanks to an extension of the Python parser from within the Synopsis
+package.  Improvements on the order of 7 to .9 seconds doesn't seem to be
+uncommon, leaving it at roughly 2 or 3 times slower than the fast parser.
+(changed) improved the calltips when using the slow parser.
+(fixed) problem where smartpaste wouldn't paste multiple lines were in the
+clipboard, and your cursor was not on a currently empty line.
+(added) rudimentary parser for C/C++ based on regular expressions.  Also
+supports function-like macros.
+(added) support code for the filter tool to handle C/C++ documents and
+definitions.
+(fixed) repeated lines.selectedlinei = lines.selectedlinesi continually
+selecting an additional line each time.
+(added) hotkey support for macros.  They are checked after menu hotkeys, but
+before other controls get their chance.
+(added) repurposed hotkey dialog for choosing hotkeys for macros.
+(added) button for choosing hotkeys for macros within the macro tool.
+(fixed) line endings in logger/stdout for non-Windows platforms.
+(fixed) importing of C modules from macros will no longer cause unexpected
+consequences (crashes, nothing gets logged anymore, etc.)
+(removed) implicit imports using sys.modules references.
+(added) support for 'sdist' to setup.py .
+(added) explicitly disabled 'bdist_wininst' and 'bdist_rpm' due to the broken
+nature of bdist_wininst; namely that it will mangle your Python installation,
+and the belief that bdist_rpm suffers from the same problems.
+(changed) PyPE distributions available from sourceforge will now always be
+archived such that the contents are all in a PyPE-X.Y.Z/ subfolder.
+
+
+#--------------------------------- PyPE 2.6 ----------------------------------
+(fixed) added initialization to the filter tool to prevent errors if a user
+attempts to filter a list that hasn't been filled by the parser yet.
+(fixed) using the edit menu items (or their equivalent hotkeys) for: Undo,
+Redo, Select All, Cut, Copy, Paste, Delete, will now work properly when you
+are typing in a text edit control (findbar, filter, etc.)  This extends a
+previous fix originally written for entries with history (the search tab,
+etc.)
+(fixed) name error when playing back macros.
+(added) filter tool now has context displaying and sensitive search, where
+"context" is the class/method hierarchy.
+(removed) "Hierarchy" column from the filter table, including it made the
+listing far too cramped.
+(changed) layout of the filter tool slightly to be more reasonable on smaller
+displays.
+(removed) all unnecessary first columns in all list controls that caused a
+less-than-attractive initial column on wxGTK platforms (linux and maybe OSX).
+Should not affect functionality.
+(fixed) exception during macro execution if the last command in the recorded
+macro was a user typing.
+(added) macro support for all items in the 'Transforms' menu.
+(added) macro support for automatic triggers.
+(added) rudimentary autoindent support for xml, html, and tex/latex.
+(fixed) language detection for autoindent when editing files with
+user-specified non-default syntax highlighting language.
+(added) <!-- todo: stuff --> support for XML and HTML.
+(fixed) over-zealous todo discovery in some cases.
+(added) autoindent support for trigger items.
+(changed) made triggers filetype global (triggers defined for a Python file
+will be shared among all Python files, etc.)  Previously existing individual
+file triggers will be lost.
+(added) macro support for View -> Jump forward/backward .
+(added) View -> Find Definition , which will pop up the filter tool, enter in
+the current word (if any), and set the focus to the filter tool.
+(added) hitting 'Alt+enter' or the number pad enter while focus is on the
+filter tool text entry will automatically go to the selected definition in the
+"Definition" list, selecting the first if none are selected.
+(added) hitting 'Ctrl+UP/DOWN' while focus is on the filter tool text entry
+will change the definition selection to the direction of the arrow pressed.
+(added) macro support for 'Select All'.
+(added) 'lines' property to editor controls for line-based macros.
+(added) option to allow for different context displays for the filter tool.
+(added) approximate line count information for each item in the filter tool.
+(fixed) sorting in the filter tool to be accurate depending on what context
+you have selected.
+(changed) extracted trigger interpretation code so that macros can get the
+same cursor and auto-indent code for text insertion as triggers.  Usable via
+stc.InterpretTrigger(text) .
+(added) macro tab with support for recording, editing, playing back, and
+deleting macros.  Recursive macros won't work (playing back a macro while
+recording another macro will not cause recording of the played back macro to
+occur), and a user can crash (or lock up) PyPE if they aren't careful.  Note
+that strictly recording and playing back macros shouldn't break PyPE, only if
+you customize the macro recording.
+(updated) documentation to include information about macros.
+(updated) the information about the now ignored --macros command line option.
+(fixed) error when autocomplete was turned on that prevented autocomplete from
+working at all.
+(changed) help information is now available in the "wide tools".
+(changed) "Help -> PyPE Help" will now make sure that the "wide tools" are at
+least half the height of the PyPE window and bring into focus the "Help" tab.
+The Help dialog will no longer be available.
+(added) longest-common subsequence matching to the filter tool along with
+relevant documentation.
+(changed) filter search options will now be shared among all documents.
+(added) option to disable the writing of a BOM if a coding: directive is found
+when writing to disk when using a unicode-enabled PyPE.
+(added) the ability to choose what information is displayed in the document
+listing tab (that sits between "Macros" and "Browse"); Filename or Filename,
+Path or Path or Path, Filename.
+(changed) made macro buttons images for better visibility when the toolbar is
+narrow.
+(fixed) opening files with the file system browser on (I believe) all
+platforms, Windows and Ubuntu at least.
+(added) try/finally blocks around BeginUndoAction/EndUndoAction as a
+precaution against a function failing and leaving the editor in a state where
+undo/redo were just about useless.
+(fixed) macro playback error caused by using wx.SafeYield() rather than
+wx.Yield().
+(added) Filter table options for TeX/LaTeX.
+(note) made filtering essentially a no-op for non-Python/TeX/LaTeX.
+
+
+
+#--------------------------------- PyPE 2.5 ----------------------------------
+(fixed) embedded Python shell and embedded command shell kill on Windows (and
+likely other platforms).
+(changed) re-enabled comments for html and xml via the sgml/html/xml standard
+method of <!-- comment --> .
+(fixed) todo sorting.
+(fixed) handling of urls in comments spoofing todo items (it wasn't quite
+right before).
+(fixed) Python keywords in todo items; now will only skip entries that could
+reasonably be commented statements/expressions (if, elif, else, def, cdef (for
+pyrex), class, try, except, finally, for, while, lambda).
+(fixed) menu hotkeys for non-latin characters and non-US keyboard layouts will
+be displayed correctly for all newly updated hotkeys.
+(fixed) menu hotkeys that weren't being discovered with the updated keymapping
+support are now at least partially supported.
+(extracted) hotkey dialog definition into its own module and converted all wx
+use to wx namespace.
+(changed) menu hotkey dialog should now support most every keyboard
+combination you can think up (and may support more than it displays).
+(changed) made autocomplete more "interactive"; will now trim the autocomplete
+list to only include those items that match the prefix of the current word.
+Should work like you expect.  If not, please let me know what you expect.
+(added) sloppy cut/copy.  If enabled and selecting multiple lines to be cut or
+copied, it will automatically change the selection to include all lines with
+any portion selected.
+(added) smart paste.  If enabled and pasting multiple lines, will autoindent
+the newly pasted lines, inserting them on a new line just after the current
+line if it is not empty.
+(fixed) the "name" and "line" listings are now sorted by "name" and "line"
+respectively (their sorting had been reversed for some unknown number of
+revisions).
+(added) command-line option for disabling the parsing thread (--nothread)
+(fixed) PyPE will now open files with uppercase characters from Windows on a
+Samba mount, thank you Walter Dorwald for the bug report!
+(changed) name of the 'Options->Caret Options' menu to 'Options->Caret
+Tracking'
+(added) caret width option in the Options menu.
+(added) 'File->Restart' command for quickly restarting PyPE after settings
+change, etc.  Will pass the same command line arguments to the restarted PyPE.
+(extracted) the hierarchical tree definition from pype.py and placed it in its
+own module and converted all wx use to wx namespace.
+(extracted) the todo definition from pype.py and placed it in its own module
+and converted all wx use to wx namespace.
+(changed) made various per-document settings somewhat more generic.
+(added) filterable definition list (filters as you type), should appear just
+after the line-sorted browsable source tree.
+(extracted) trigger dialog definition into its own file and converted all wx
+use to wx namespace.
+(added) Options->One Tab that will push the Name and Line sorted source trees,
+the filterable definition list, and the todo list into one 'Tools' tab, with
+navigation between the four via dropdown.
+(fixed) at some point I broke bookmark and fold saving, which are now fixed.
+(fixed) at some point I broke todos, which is now fixed.
+(fixed) hidden browsable source trees on GTK/Linux wxPython has been fixed,
+and may very well be a bug on the underlying platform, thank you Ken for the
+bug report!
+(changed) a few bits to make adding new "tools" easier.
+(changed) made the tools tab instead of multiple tabs the default.
+(fixed) last column duplicated on GTK platforms.
+(fixed) borrowed wxPython demo keyboard event code that seems to work better
+than my previously existing code, which fixes tab keypresses in linux.
+(fixed) disappearing tools on linux (and hopefully all platforms).
+(added) various filtering options for the definition filter tool (exact, any,
+all).
+(attempted to fix) various vertical alignment issues with text blocks near
+buttons, text controls, etc.
+(changed) refactored some of the hotkey code and noticed that many hotkeys are
+being handled by the menus, which is bad.  Bad because possible future macro
+functionality is less usable without menus.
+(changed) made menu/hotkey updates only update the menu OR hotkey, depending
+on where you click in the dialog.
+(updated) the documentation/readme.  Included information about command line
+options, Sloppy Cut/Copy, Smart Paste, and others.
+
+
+
+#--------------------------------- PyPE 2.4 ----------------------------------
+(fixed) Help text for Transforms->Dedent Region.
+(fixed) Radio items in the menus by simulating them with check items.  For
+some reason, trying to check radio items wasn't working...Ah well.
+(fixed) When a Python or Command shell receives data from the running shell,
+it will now place the received data just before the previously being edited
+command (if any).  It was always supposed to work this way, but I messed it up
+during my effort to change the color of all received data.
+(fixed) shells for the 2.6.3 release of wxPython.
+(fixed) shell behavior when sending large blocks of data to the client if
+the user is running wxPython 2.6.3 or later through the use of
+client_stdin.LastWrite(), which wasn't previously wrapped (Thanks Robin Dunn!)
+(fixed) editor control stealing cut/copy/paste/etc. keyboard events from
+the combo boxes in the search tab, as well as the find/replace bars when
+Options->Use Findbar History is turned on.  Your cut/copy/paste should work
+correctly now.
+(fixed) when you modify a line that can be expanded (later lines are hidden
+due to code folding), the fold will be expanded one level.  Fix thanks to
+Paul McNett in the wxPython-users mailing list.
+(fixed) PyPE now uses absolute paths to read the contents of icons for that
+represent file types.  This was causing problems whenever PyPE wasn't run from
+the same path as it was installed.
+(fixed) some users of various linux systems were having problems loading
+documents.  This seems to have been caused by either the above icon path
+issue, or merely the existence of these icons in either of the two open
+document lists (along the top, or in the "Documents" tab on the (by default)
+right side of the editor).  I have added Options -> Use Icons to toggle their
+use.  You must use this option before opening any documents for it to work
+correctly.  As Florian Ludwig said, "ugly but working!"
+(fixed) The todo list was not updating if one was using the threaded option
+for parsing.  This was an unintentional side-effect from switching to the
+parser running in a thread and has been corrected.
+(fixed) auto-sizing of the last column in the Todo tab.
+(fixed) auto-sizing of the last column of the results in the Search tab, when
+viewing results as a table.
+(changed) readme.txt format to be valid reStructured Text, added html
+generated from reST source, and replaced the text help/readme dialog with a
+new Html browser window.  This window will only show the content of the help
+file, using webbrowser.open(url) for all external links.ernal links.
+(changed) started using -b 2 and compression for py2exe Windows distributions.
+(added) command-line option for the source version which allows for choosing
+whether to use ansi or unicode versions of wxPython. See the section labeled
+"Using PyPE with ansi or unicode wxPython" in the help/readme.
+(fixed) Transforms->Wrap Selected Text now wraps all of the text in the lines
+selected, fixing a problem in previous versions where the first line, if
+partially selected, would have all non-selected text duplicated at the
+beginning of the line; thus ruining the desired wrap effect, while also
+changing the content of the text.
+
+
+#-------------------------------- PyPE 2.3.2 ---------------------------------
+(fixed) bug where PyPE would fail to load if there existed a correctly-formed
+dictionary.txt file to be used as a main dictionary.  I forgot a 'break'
+statement in my attempt to reduce the indentation levels with a 'while' loop.
+
+
+#-------------------------------- PyPE 2.3.1 ---------------------------------
+(fixed) Find previous NameError.
+(fixed) Find/Replace for non-\n line endings.
+(fixed) Find previous for unicode.
+(fixed) Replace All and Replace in Selection.
+
+
+#--------------------------------- PyPE 2.3 ----------------------------------
+(fixed) setup.py for non-Windows platforms.
+(added) embedded Python shell.  Uses the platform-defined 'python' to run an
+interpreter in another process.  Because the interpreter is not running in the
+same process, it is not susceptible to the 'while 1:pass' issue that other
+in-process interpreters seem to have.  wxPython and Tk should work without
+issue in this shell.  You get syntax highlighting.
+(added) embedded command shell.  You get a shell to either 'cmd' on Windows,
+or '/bin/sh' on *nix.
+Note: The above two shells replace the old shell tab in the bottom toolbar,
+and act like documents.
+(changed) When using "Replace All" and "Replace in Selection", you will now
+notice that your view is constantly updated as the replacements are advancing.
+You can stop the replacement by closing the replace bar (via the "close"
+button, hitting "escape" while one of the replace bar text entries has focus,
+or by attempting to close the document - it will cancel the replacement
+whether you actually close the document or not)).
+(fixed) the title for the trigger setting dialog.
+(added) menu items for TeX/LaTeX support and made it easier to add support for
+more languages in the future.  Will probably at some time attempt to integrate
+a version of the STCStyleEditor into PyPE, along with a menu to customize
+which languages to show in the Open dialog, as well as the Syntax Highlighting
+and various save/load settings menus.
+(updated) the STCStyleEditor.py to the most recent version shipped with the
+wxPython 2.6 Docs and Demos.
+(replaced) the STCStyleEditor.py for style changes.  When running along with
+threads (which weren't accessing the GUI), it tended to crash Python and
+wxPython.  I can supply a proof-of-concept minimal application which crashes
+the STC quite reliably.  I've replaced it with a work-alike which doesn't use
+wxFileConfig, and should do essentially everything STCStyleEditor does for
+style changes.
+(added) a better/stronger slow parser.  This slow parser offers docstrings,
+better support for multi-line function signature definitions, and a correct
+hierarchical source tree.  It will do its job in a background thread, unless
+your code has a syntax error, in which case it will switch to the fast parser.
+Note: the slow parser can be 3-100 times slower than the fast parser,
+depending on the structure of the document.
+(added) full style support for Pyrex (gets its own entries in the stc-styles
+file.
+(changed) embedded Python shell to be faster when sending code to the
+underlying shell.
+(fixed) embedded Python shell to not duplicate '... ' and '>>> ' prompt
+prefixes.
+(changed) in the embedded Python shell, numpad enter is the same as the normal
+enter, and ctrl+enter sends the current contents of the buffer plus a line
+feed, regardless of the Python parsing or not (to handle raw_input from the
+underlying shell).
+(added) spell checker with support for custom dictionaries, a very simple
+spelling suggester, and alternate user-defined alphabets (for languages where
+this makes sense), see the readme.
+(fixed) Options->Title Options will now also update the title whenever you
+switch documents.
+(changed) made all of the block submenus for options (Line Ending, Long Line
+Indicator, Default Highlighting, Toolbar, and Caret Options) into blocks of
+data, which reduced the number of global ids significantly.
+(contemplating) switching to ReStructured Text for the help file, then using
+the ReST to generate an HTML help file, which then gets viewed via the Help.
+PyPE could definitely use better documentation.
+(added) try/except, try/finally, and try/except/finally wrapping of selected
+code to new Transforms menu.
+(changed) moved code transformations indenting, wrapping, commenting, and
+perform trigger to the new transforms menu, from the edit menu.
+(added) code path for 'insert comment' for C/C++, HTML/XML, and LaTeX.
+(added) code path for 'comment/uncomment selection' for LaTeX.
+(added) sample_alphabet.txt for english and sample_dictionary.txt from Scowl 6
+english-words.10 for examples of input.
+(updated) auto-indent/dedent code for break/continue and the forthcoming
+'with' statement.
+(added) \section, \subsection, \subsubsection, \label, and %todo: support for
+latex.
+(added) \\todo: support for C/C++ and %todo: support for LaTeX
+(wanted) a decent parser for C/C++
+(fixed) pasting in Python/command shells to properly handle pasting of text
+without line endings.
+(added) Options->Save preferences to save your current preferences (some
+slight protection against OS crash, etc.)
+
+
+#-------------------------------- PyPE 2.2.2 ---------------------------------
+(added) Ability to have the toolbar hidden, on the top, or on the left side.
+Feature thanks to Dave Schuyler.
+(added) Ability to use tabs inside the shell combobox.  On some platforms it
+will show a box glyph, but it will send an actual tab character to the
+program.  Now interactive Python sessions (without syntax highlighting) are
+a bit better.  Note: future versions of the shell will be much better.
+(changed) The 'search' tab now has separated the 'path' and 'filename'
+portions of results when used in the table version.
+(added) Ability to automatically forward open document requests to a single
+running PyPE instance.  Uses a socket listening on 127.0.0.1, port 9999.  See
+the readme/help for details.
+(fixed) Segfaults on linux were caused by an icon size mismatch.  This has
+been fixed.  A big thank you to Michele Petrazzo for figuring out where the
+problem was (I don't have a linux box for testing).
+
+
+#-------------------------------- PyPE 2.2.1 ---------------------------------
+(fixed) exception when opening any document (new or old).
+
+
+#--------------------------------- PyPE 2.2 ----------------------------------
+(removed) a debug statement or two.
+(added) installation section to readme.
+(fixed) a bug where new saved documents wouldn't close, and their states
+wouldn't be saved.
+(changed) when switching to a different document (for any reason), PyPE now
+selects the editor portion of the window.  Previously if one selected the tab
+of a document, or a document in the document tab, it would keep those
+particular items selected, resulting in strange arrow/typing behavior.
+(fixed) when changing menu item names, previously one needed to choose a
+hotkey in order to make name changes stick (then clearing the hotkey if
+necessary).  Now your changes will take effect as long as you keep clicking
+'OK'.
+(changed) tweaked the C/C++ indentation on {} rules to more closely match the
+most common style guides.
+(added) 'public' keyword to pyrex syntax highlighting.
+(changed) When selecting an item from the results in the 'search' tab, the
+exact item that was found will be selected if possible.  Possible incorrect
+selection conditions:
+ * if the file contents have changed, the same line number where the match was
+originally found will be selected, if it exists
+ * if one is searching for a string that is quoted or commented, and something
+that matches is discovered before the quote or comment, that earlier match
+will be shown instead
+(fixed) currently untitled documents will now have their 'file name' displayed
+in the search results.
+(fixed) choosing an untitled document in the 'search' tab will now go to the
+proper file.
+(fixed) the search tab will now not duplicate entries in the 'selected text',
+'current file', 'current file with includes', or 'open files' scopes when
+multiple paths are listed in "Directories", and will actually produce results
+when there is nothing in "Directories".
+(fixed) searching in currently open unicode files (it works now), unicode
+files on disk still have issues.
+(changed) the 'to be searched for' string in the 'search' tab now supports
+string escaping like the find/replace bars.
+(changed) if your search string for the 'search' tab includes at least one
+line ending, then multiline will be automatically enabled during the search,
+but will not be shown in the options.
+(added) for unicode-enabled versions: PyPE will respect the "Encoding
+declaration" during file load, as specified in the "Python Reference Manual"
+aka the "Language Reference", if no Byte Order Mark (BOM) is present.  It will
+also alert the user to any failure in decoding the loaded file.
+(added) for unicode-enabled versions: if Document->Encodings is set to
+'other', PyPE will attempt to encode the file as specified in the "Encoding
+declaration", and will alert the user on failure to encode the file.
+Note: PyPE will not add/alter/change the encoding declaration, but it will
+respect them.
+(added) for unicode-enabled versions: a tab next to Shell which produces the
+repr() of a given block of text.  Not a huge feature, but convenient for
+working with unicode and Python consoles.
+(added) View->Go to position for jumping to a particular position in a file.
+Note that this may be slow on large files because Scintilla uses an internal
+utf-8 representation.  This means that in order to find the current position
+in the file, one must necessarily iterate up to that position to discover all
+multibyte characters.  This is further uglified by Scintilla considering
+Windows line endings '\r\n' as a single character in stc.GetPositionAfter().
+(changed) non-unicode versions of PyPE will use history.txt and menu.txt to
+store preferences.  unicode enabled versions of PyPE will use history.u.txt
+and menu.u.txt to store preferences.
+(added) Options->Findbar below editor option, when unchecked, find/replace
+bars will be above the editor instead of below it.
+(added) shell command support and interaction embedded in PyPE, or embedded
+within a new terminal (on Windows, the terminal only exists if necessary, on
+other platforms, it uses xterm so the terminal may exist even if it is not
+necessary).
+(fixed) creating a new document (via menu or hotkey) will now focus the cursor
+in the new document.
+(fixed) selecting search context (directories, current files, etc.) in the
+search tab will now disable options which are not relevant to the current
+search context.
+(updated) readme.txt
+
+
+#-------------------------------- PyPE 2.1.1 ---------------------------------
+(fixed) a bug where PyPE would fail to load if the user had run certain PyPE
+beta releases.
+(fixed) a bug where win and win-unicode versions would fail to load if PyPE
+couldn't find your home directory.
+
+
+#--------------------------------- PyPE 2.1 ----------------------------------
+(fixed) a bug when saving a file at the root of a drive on Windows wouldn't
+quite work.
+(fixed) a bug that would cause windows-unicode using versions of PyPE to not
+realize they were unicode-enabled when they were installed in a path without
+'-unicode' contained in them.
+(changed) PyPE no longer saves state information (bookmarks, folding, etc.)
+about a document if the document is different from what is on disk.
+(changed) Opening a document that has a different md5 than what PyPE last saw
+now ignores saved cursor position information, bookmarks, and folding for that
+opened document.
+(fixed) broken state saving when documents are closed individually.
+(changed) increased the recent document memory from 64 to 128 documents.
+(added) portion to parser to pull out cdef names for Pyrex files.
+(added) keywords and filename masks for Pyrex files (uses the Python lexer and
+settings).
+(added) auto-indent/dedent on 'enter' keypress for C code, based on curly
+braces '{}' and the existence of 'return' as the first non-whitespace item on
+the line.
+(fixed) an issue where documents listed in the documents tab would not have
+their modified '*' prefix set or reset properly unless the document was
+dragged around (and sometimes not even then).
+(fixed) updated definition of findbar.ReplaceBar.setup to make
+findbar.FindBar.setup unnecessary.
+(changed) renamed Document->Indent Width to Document->Set Indent Width, which
+may remove the hotkey if someone had one bound to that menu item.
+(fixed) Settings loading/saving options in per-document settings.
+(added) Jumping forward and backward to matched parens, braces, etc.  See
+View->Jump Forward and View->Jump Backward (if you use these, you should set
+a hotkey or two).
+(added) Triggers functionality.  Works in a similar fashion to TextMate's
+triggers, and can be used in a similar fashion to TextMate's Smart typing.
+(removed) unused code relating to the browsable source tree, which fixes some
+bugs for those using a recent version of wxPython.
+(added) option to relocate the Todo tab to between the Line and Documents tab,
+see Options->Wide Todo .
+(fixed) when double-clicking on a result in the Search tab, will now make sure
+that the line is actually displayed, unfolding if necessary.
+(added) optional toolbar with many common functions.  Check
+Options->Show Toolbar .
+(added) '//' commenting for C/C++.  I had also added '<!-- -->' commenting for
+xml/html, but I have disabled it due to the fact that that such comments do
+not nest (which is also why I went with '//' for C/C++ instead of /* */).
+(added) filters to browse tab (previous wxPython versions didn't really
+support multiple filters per entry very well).
+
+
+#------------------------------ PyPE 2.0 Beta 3 ------------------------------
+(fixed) if saving the results of find-in-files requires unicode, it will
+automatically encode the output file into utf-8, which only matters on systems
+with unicode filenames and/or file contents.
+(removed) saving the results of find-in-files.
+(fixed) behavior of ctrl+f when text is selected to insert escaped text (when
+the selected text is not unicode and escapes are necessary).
+(fixed) find-as-you-type in the findbar, it was broken after I added
+shift+enter for 'find previous'.
+(fixed) Document->Indent Width works again.
+(changed) todo list now uses table object from find in files.
+(fixed) sorting and clicking on todo items.
+(fixed) off-by-1 numbering error on line numbers for find in files items.
+(changed) multiline search in find in files now produces line numbers and
+multiple results.
+(fixed) workspace saving that would destroy other workspaces.
+(fixed) bug where reducing the size of the bottom toolbar would crash the
+editor.
+(added) find in files features with help from Dave Schuyler:
+(added) various scopes in which to search: selected text, current file,
+current file with includes (works for Python and C files), open files,
+directories, and tags in directories.
+(added) options when searching: whole word, quoted, and commented.
+(added) filename and extension exclusion.
+(added) viewing results as a table or tree, in addition to plain text.
+(changed) name of "find in files" to "search", in order to be more
+representative of what the tab is currently capable of.
+-- beginning of find in files features written or helped by Dave Schuyler
+(added) findbar features with help from Dave Schuyler:
+(updated) the behavior of smartcasing to be 'more smart', updated the readme.
+(changed) find/replace bars now remember their status per-document.
+(changed) find/replace bars now have a history of search/replace terms.
+-- end of findbar features written or helped by Dave Schuyler
+(fixed) saving of files with unicode characters (was caused by writing unicode
+strings to standard out without converting them to an ascii representation
+first).  Now uses a string.encode('utf8') before writing to standard out.
+(added) wx.Yield() calls to the bit that handles the discovery of Python
+imports in the find in files tab for PyPE responsiveness during large file
+scans.
+(fixed) printing of status messages to the log tab now occur even if the log
+does not yet exist (users get to see some startup messages now).
+(fixed) keyboard navigation of the find/replace bars to be cyclic.
+(added) ability to clear the find/replace history of the find/replace bars.
+(fixed) parsing of C files in search tab.
+(fixed) search "current file and includes" for Python files to not try files
+multiple times.
+(added) window title now includes filenames (thanks Dave Schuyler).
+(fixed) behavior of caret options, will now update all editor controls when
+settings are changed.
+(added) ability to disable find/replace bar history.
+(added) ability to change what the title bar displays.
+(moved) all editor-global options to a new 'Options' menu, any previous
+hotkeys for these options are lost.  Original locations of affected options:
+Edit->Enable File Drops, View->Editor on Top, View->Editor on Left,
+View->Caret Options, View->Set Caret M Value, View->Set Caret N Value,
+Document->Save Settings, Help->Change Menus, Edit->Use Findbar History,
+Edit->Clear Findbar History, View->Title Options.
+(fixed) bug with find and replace bars and unicode.
+(changed) find/replace bars now use the compiler module to discover the actual
+strings when Python-style string constants are used, removing PyPE's reliance
+on 'eval'.
+(fixed) the construction of binary distribution to force compression on the
+library.zip file, drastically reducing the size from nearly 7 megs to just
+over 4 megs.  Not quite as good as PyPE 1.9.3's 3 megs, but wxPython has grown
+somewhat, as has PyPE's reliance on additional wxPython widgets.
+(note) I will begin posting md5 and sha1 checksums in the sourceforge notes
+as requested by a user.
+(changed) the names and descriptions of some items in the Options menu.
+(added) per-filetype document preferences (everything in the Document menu
+except for "line ending" and "syntax highlighting"), savable and loadable via
+Options->Save Settings and Options->Load Settings respectively.  If a document
+without any previous preferences is loaded, it gets these settings loaded by
+default.  Individual documents will remember any settings that are set for
+them, and can be reset via Options->Load Settings.
+(fixed) the display of help text in the status bar for some menu options.
+
+
+#------------------------------ PyPE 2.0 Beta 2 ------------------------------
+(fixed) Todo no longer includes http, ftp, mailto, news, gopher, and telnet.
+(fixed) Bug when opening non-existent files.
+(fixed) When one indents/dedents selected text, the selection will change to
+select the entirety of all lines covered (similar to the way comment/uncomment
+does).
+(removed) Find/Replace dialog.
+(added) Replace bar with 'replace' and 'replace all' functionality.
+(added) "Escape" key now closes find bar or replace bar, if any of their text
+entry locations have focus.
+(added) Option to disable drag and drop file support on the editor window,
+though it is still enabled other places.
+(added) Help information about Edit->Enable File Drops
+(added) Ability to replace a workspace during save of workspace.
+(added) Find in files tab to the notebook on the bottom bar.
+(removed) Find in files dialog.
+(added) Ability to save the results of a 'find in files' search to a text
+file.
+(added) Option to move bottom bar to the top, and/or right bar to the left.
+(added) Smart Case replacements.  When the replacement string is as long as
+the replaced string, and smart case is enabled, it will automatically adjust
+the case of all replacement strings.  See the readme for more information.
+(added) Replace in selection.  When used with "replace all", will perform a
+"replace all" only on everything in the selection when the button was clicked.
+(fixed) removed reporting of exception when PyPE attempts to change to a path
+that doesn't exist anymore.
+(removed) some unused blocks of code.
+(removed) some unused ids.
+(moved) "next/previous tab" entries to "View" menu (for hotkey support).
+(fixed) Issue when PyPE is running during daylight savings time changes (known
+bug for over a year) where user would be notified that all documents currently
+open have had the on-disk versions changed.  Only documents that are actually
+different from their on-disk versions will cause a notification.
+(fixed) Issue when someone saves a file with identical content over a file
+that is currently open but unchanged.
+(fixed) When loading/saving files on any platform where the filesystem is
+case-insensitive, but case-preserving, PyPE will respect the capitalization
+of files (users may need to clear out their .pype profiles to get full use of
+this).
+(fixed) When saving a document, the icon for the document above the editor
+will be the same as in the documents tab.
+(fixed) When saving the last document, which happens to be unnamed, will no
+longer change the current document selection.
+(added) Caret 'sloppiness', which restricts the cursor position as you are
+typing or moving the caret.  Check out View->Caret Options (of which there are
+5).
+(changed) The layout of the find/replace bars.
+(added) repeated ctrl+f commands will perform repeated find next operations.
+(changed) F3 will now only find next if there already existed a find/replace
+bar, no longer creating one if it did not exist.
+(changed) ctrl+f/r will insert selected text into the 'to find' text.
+(changed) if there is already text in the 'to find' text in the find/replace
+bar, and no text is selected in the editor, then the 'to find' text will not
+be replaced.
+(changed) if there is no text in the 'to find' text in the find/replace bar,
+and the cursor is on a word, it will be inserted into the 'to find' text box.
+(added) if the 'to find' box has focus, shift+enter will find previous.
+(fixed) encodings changing code for unicode builds.
+(fixed) detection of unicode for newer versions of wxPython.
+(added) ability to disable wrapping during find.
+(fixed) nameerror during the opening of a document when a previous version of
+PyPE had never been run.
+
+
+#------------------------------ PyPE 2.0 Beta 1 ------------------------------
+(changed) Pulled source tree from being per-document to being shared among all
+documents, tree is rebuilt on document switch.
+(changed) Each document gets its own tree, but it shares the same visible area,
+using .Show() and .Hide() tricks so that only one is visible at one time (the
+one for the current document).  Tree is not rebuilt on document swap.
+(fixed) On document refresh, tree is destroyed and rebuilt, fix for the
+non-removal of some removed functions/classes from the tree after they had
+been deleted from the document.
+(fixed) a bug involving non-reloaded but modified files not asking for save on
+document close or PyPE exit.
+(removed) pathmarks menu.
+(removed) shell commands menu.
+(added) browsable filesystem tab.
+(added) pathmarks to browsable filesystem tab.
+(added) document list tab, drag and drop reordering of documents.
+(removed) tabs menu (use the document list)
+(added) icons for documents wherever possible.
+(added) logging mechanism (for bug reports and whatnot).
+(added) most status bar updates go to the log.
+(added) second browsable source tree, one sorted by line, the other sorted by
+name.
+(added) find-bar per document (try ctrl-f).
+(fixed) redraw of document editor after transition between dirty/nondirty and
+opening new files.
+(moved) much of the non-main window code to a plugins directory.
+Functionality should be unchanged, but easier to edit.
+(changed) started transition to wx namespace.
+(added) 'todos' can now have any category.
+(removed) code snippets, may appear in a later PyPE release if people want
+snippets.
+(fixed) wrap selected text, now uses textwrap for paragraph wrapping.
+(added) workspace management, can now save and load a document listing, try
+it!
+(fixed) parser now (poorly) understands __init__ and __new__, tooltips will
+now show __init__ and/or __new__ methods when available for a class.
+(fixed) main window and all sub windows now remember size and position.
+(fixed) line and column indicators when the keyboard is not used to move the
+cursor.
+(updated) documentation, AKA readme.txt.
+
+
+#-------------------------------- PyPE 1.9.3 ---------------------------------
+(changed) find now searches from the current cursor position, rather than the
+beginning (search down) or end (search up).
+(removed) event binding for EVT_STC_POSCHANGED, which has been removed in
+2.5.1.5.
+(fixed) a bug that resulted from opening an empty file.
+(fixed) a bug that resulted from opening a file without line endings.
+
+
+#-------------------------------- PyPE 1.9.2 ---------------------------------
+(improved) the find and find/replace dialogs will now remember the case, whole
+word setting, and direction (if applicable) for the last time the find/replace
+button was pressed.
+(fixed) various refresh bugs have been fixed.
+(fixed) syntax highlighting bug in PyPE 1.9.1
+
+
+#-------------------------------- PyPE 1.9.1 ---------------------------------
+(improved) the speed of PyPE closing down with many documents open.
+(fixed) old hotkeys and menu items that are no longer being used are now
+removed upon restarting PyPE.
+(fixed) The #!/ shortcut at the beginning of pype.py now points to:
+'#!/usr/bin/env python', which should find Python on most every *nix system.
+(fixed) a bug reported by Denis Dube when using the binary in which running
+'pype.exe <filename>' would result in syntax highlighting not being available.
+
+
+#--------------------------------- PyPE 1.9 ----------------------------------
+(fixed) a bug that resulted in PyPE closing down without warning if the Find
+or Find/Replace dialog was attempted to be open while another was already
+opened.
+(added) a dialog and support code for changing menu item names and hot-key
+bindings.  This has been in the works for a while, and hopefully will get some
+use.  Even though the description of this change is only a few lines long, the
+implementation is over 250 lines.  The current implementation is limited to
+adding hotkeys to items that are in the main menus and do not contain
+submenus.  Any hotkey combination desired will likely work (Shift+Tab seems to
+have a problem due to the automatic button/entry navigation in dialogs, and
+likely other platform-specific key combinations will not work).
+(cleaned) out most (if not all) old hotkey-support in OnKeyPressed, now all
+menu hotkeys are a dictionary lookup.
+(fixed) maximizing and restoring will now result in more stable browsable
+source tree widths.
+(changed) parsing has been moved back into the core process and is multiplexed
+with wxYield() calls.  External parsing is not required with the fast parser
+and wxYield.  If you want to know why it was moved to an external process
+previously, check the changelog.txt included with PyPE.  By not doing any
+external IO, polling files, spawning processes, etc., parsing the file and
+updating all the requisite information is roughly twice as fast as it was in
+1.8.2.
+(tossed) all the unused external process parser stuff.  No need for it now.
+(information and change) there are now two things that can occur that take up
+a measurable amount of time in-process: parsing and finding in files.  Both
+call wxYield() in order to offer the the GUI some time to update if needed.
+Great pains have been taken so that 'find in files' will not occur during a
+wxYield call of the parser, nor will two 'find in files' occur simultaneously.
+(fixed) the listbox control in 'find in files' seemed to have issues with tabs
+displaying correctly.  On display they are automatically replaced with the
+PyPE's default number of spaces per tab.
+(fixed) the forgotten re import that allows for regular expression searches
+in 'find in file'
+(fixed) 'replace all' will now be considered a single modification for the
+purpose of undo/redo.
+(now included) is a modified version of wxProject.py that supports the file
+list as a dragNdrop file source.  For those who want a /really/ ghetto project
+manager, this version of wxProject.py is for you.  Does not work properly when
+run with a unicode-enabled wxPython.  I have no idea why.
+(received) patches to PyPE from Relja Stanisavljevic (no SFID given), which
+resulted in the following (after fixes were applied):
+1. 'Find Again' menu item and functionality.
+2. Untitled documents now have unique numbers, tabs are now named <untitled #>
+3. Comment and uncomment code does the right thing for indented blocks.
+A big thank you goes out to Relja Stanisavljevic.
+
+
+#-------------------------------- PyPE 1.8.2 ---------------------------------
+(added) an option to allow PyPE to save cursor position information in a
+document.  Even though I don't use such a thing (and loathe it), others may
+like such a feature.
+(fixed) a bug with the backlog of saved states that would crash PyPE on load
+when enough documents had been opened.
+
+
+#-------------------------------- PyPE 1.8.1 ---------------------------------
+(fixed) a bug with 'Open Last', in that it wouldn't actually open the
+documents that were open when PyPE was last closed.
+(fixed) a bug described here:
+1. Open some documents
+2. Close PyPE (saving if required)
+3. Open PyPE (don't load any documents)
+4. Close PyPE
+5. Open PyPE.
+A user would notice that no documents closed in step 2 will have their states
+saved.  As they are recently open documents, they (in version 1.8.1 and on)
+become part of the 64 most recent that get their states saved in addition to
+those documents closed when PyPE closes.
+(fixed) Updated some methods in the most recent queue to follow the dictionary
+standard of mapping(zip(map_instance.keys(), map_instance.values())) producing
+an equivalency to the original map_instance.
+(fixed) When calltips are shown, the class/method hierarchy for the function
+prototypes are now in the proper case (they were previously all in lowercase).
+
+
+#--------------------------------- PyPE 1.8 ----------------------------------
+(information) the bug that was fixed in PyPE 1.7.3 removed every file in the
+path '<user profile>/.pype', including the history.txt that kept user profile
+information.  During the update, sourceforge went down for maintenance, and I
+was expected at a friend's party.  It was eventually uploaded.
+(added) Every per-document setting that can be set, will be perserved if PyPE
+was closed with the document open.
+(added) The 64 most recently closed documents will have their state
+information saved, just like if PyPE was closed with them open.  These 64
+documents are in addition to those with states saved when PyPE closes.
+(removed) the ability to hide the fold margin (which had a bug in it since its
+introduction anyways).  Hiding the fold margin when code is folded can lead to
+data corruption.  If one hits 'return' on a folded line, all hidden lines that
+are hidden through the result of the fold are deleted.  If the margin were
+hidden, then it would be impossible to either fold or unfold, so I just got
+rid of the ability to hide the margin.
+(fixed) shell commands can now have arguments.  This has likely been a long
+standing bug.
+(changed) made the default syntax highlighting for a new document to be set by
+the user, defaulting to python.
+(fixed) PyPE has a new icon and is set up to use the new icon in the titlebar
+and taskbar (on platforms where this makes sense).
+(added) Find in files dialog as requested by user francescoa at sourceforge.
+(added) Save information about the last 10 unique values in each entry in the
+find in files dialog.
+(fixed) bug
+https://sourceforge.net/tracker/index.php?func=detail&aid=856727&group_id=85104&atid=574958
+
+
+#-------------------------------- PyPE 1.7.3 ---------------------------------
+(fixed) a stupid bug that was caused by fixing a stupid bug.
+
+
+#-------------------------------- PyPE 1.7.2 ---------------------------------
+(fixed) I forgot to remove a debug line that keeps copies of every document
+that gets parsed in a user's profile.
+(fixed) a bug when dedenting a single line with the cursor near the beginning
+of the line.
+(fixed) a bug that wasn't causing any harm, but was slowing down the loading
+of PyPE.
+
+
+#-------------------------------- PyPE 1.7.1 ---------------------------------
+(fixed) a bug with the 'fold all' menu command that stopped all of the
+document from being folded.
+
+
+#--------------------------------- PyPE 1.7 ----------------------------------
+(added) When reloading from disk, a document's browsable source tree, etc.,
+will be updated.
+(fixed) various problems with the window not being redrawn.
+(fixed) some indent/dedent problems.
+(added) SPE-style per-document todo list.
+(updated) the readme.txt that is included with PyPE.
+(changed) the default styling for unknown extensions is now plain text.
+(changed) the exceptDialog to show a scrolled text dialog, for easy copy/paste
+bug reports.
+(fixed) Thanks once again to Villy Dachev, any time the PyPE executable (or
+the source version was run with the python binary) was run from a path that
+contained spaces, it used to have some SERIOUS issues.  They have all been
+resolved.
+(fixed) a problem when one's user profile was not stored in a path containing
+spaces, resulting in a file not being parsed.
+(cleaned) up some parser spawning code.
+(added) notification to warn users when they attempt to run a script who'se
+path contains unicode characters.
+(fixed) a difficult to track down bug involving running the source version.
+It was the result of taking the location of the PyPE source as sys.argv[0],
+which only gives the relative path given the original path when running PyPE.
+Too many hours were spent tracking this bug down.  This was likely a long
+standing bug.
+
+
+#------------------------------ PyPE 1.7-test3 -------------------------------
+(fixed) 2 problems pointed out by Villy Dachev, and added one feature:
+(fixed) a problem with external document modification and refreshing.
+(fixed) a problem with running external scripts in the windows binary.  Users
+should check this one some more.
+(added) a 'fold all' function to the 'Document' menu.
+
+
+#------------------------------ PyPE 1.7-test2 -------------------------------
+(fixed) after using 'save as' or attempting to save a document that was
+previously unnamed, PyPE would leave capital letters in the document name
+within the document tab, even when the operating system is case agnostic.
+This is now fixed.  On systems where case does not matter, the file names will
+be consistent in the document tabs.  No change for systems that care about
+case in file names.  This has been a long-standing visual bug that was never
+noticed.
+(fixed) a bug with indentation.  Previously it would always indent using the
+default indent during indent/dedent operations (including when hitting return
+after a function def, while, etc).  This has been fixed so that indent/dedent
+uses the document specified indent.
+(changed) Rather than ALWAYS indenting/dedenting the indent width, the first
+indent/dedent operation will indent/dedent to the closest proper indentation
+position.  That is, if your indent width is k, after indent/dedent operations,
+the indentation of a line will be 0 mod k.
+(fixed) the text entry dialogs for various numbers in the document tab would
+not validate the result, making sure they were > 0, even when such a number
+was asked.  They now check.  If the returned value is <= 0, it will keep the
+previous value.
+(added) when closing down PyPE with open documents, PyPE will remember which
+lines were folded and which weren't.
+(added) a function to unfold all lines in a document to the 'Document' menu.
+(changed) a slight 'Document' menu reorganization.
+(tossed) some unused dialog box code.
+
+
+#------------------------------- PyPE 1.7-test -------------------------------
+(changed) when source files are larger than 512k, the slow parser will never
+be called.  Why?  Because the slow parser runs around 25 seconds (on my
+machine) on such a large piece of Python source, and it stops being useful if
+you have to wait so long.
+(made faster) Thanks to the input of Jeff Grimmett (no sourceforge id given),
+the fast parser is even faster.  He offered a two-pass method that beat my
+previous single-pass method by a significant margin.  After more than a dozen
+emails back and forth, along with heavy optimization, which one is faster is
+still up for debate (there are some inputs where one is ~5% faster, then on
+others the other is ~5% faster).  All told, the new fast parser is around 30%
+faster than the original fast parser, and includes support for pulling out
+calltips, and better function/class listings in the browsable source tree.
+Most all the modifications to the parsing for this release is due to the
+dialog between Jeff and I.
+(fixed) Sometimes parsing would fail due to ambiguous line endings.  This has
+been fixed.  All line endings upon load, save, and parsing, are automatically
+converted to the most dominant line ending format.
+(fixed) fast parsing would ignore tabs, thinking they were not whitespace.
+Now it is converted before parsing to spaces, as given by spaces_per_tab in
+configuration.py
+(fixed) While I am uncertain whether Python supports unicode in function,
+class, or variable declarations, fast parsing will not behave any differently
+when using unicode or not.
+(changed) both parsers now generate a better browsable tree.  The tree
+now contains more information about function calls.  It also sorts based on
+the names of a function/class, without the leading 'class' or 'def', and
+ignores case.
+(moved) all the user-changeable configuration in configuration.py to the top
+of the file for easy access.
+(fixed) when hitting enter on a line with a return or pass statement, the next
+line will be dedented properly.
+(changed) the way calltips are cancelled.  They are cancelled less often,
+which is definitely better.
+(changed) due to the fact that the fast parser produces basically everything
+about the python source (except for docstrings and multi-line calltip
+definitions), PyPE will now use, by default, the fast parser to deal with
+parsing.  This is preferred, if only because now tree updates can happen in
+under 2 seconds for the majority of source files (on my Celeron 400).
+(increased) the size of the browsable source tree when "Show/hide tree" is
+used (whether by the menu or hotkey).
+(added) a command to hide all the browsable source trees.  Check the 'View'
+menu.
+(fixed) resizing the window doesn't change the size of the browsable source
+trees.  Every open document will have their browsable source tree keep their
+sizes during window resize.  It only updates the document that is currently
+visible (so no worries about 20 documents slowing down window resize).
+(fixed) a bug when using bookmarks.  When going to a bookmark, PyPE will make
+sure that the line containing the bookmark is visible.
+(changed) basically all those configuration options that were to be edited in
+configuration.py have been removed.  They are now available in the 'document'
+menu.
+(added) option to view/not view line numbers.
+(added) option to view/not view bookmark margin.
+(added) option to view/not view fold margin.
+(added) option to view/not view indentation guide.
+(added) option to view/not use tabs.
+(added) option to view/not wrap long lines.
+(added) option to change indent width.
+(added) option to change the tab character's width.
+(added) option to change the long line column number.
+(added) option to change the long line column indicator.
+(added) option to view/change the current line endings.
+(added) option to sort the browsable source tree by name or line number.
+(added) per-document autocomplete.  Rather than autocomplete being a global
+setting, it is now a per-document setting.
+(moved) location of encoding and syntax highlighting submenus to the document
+menu.
+
+
+#------------------------------- PyPE 1.6.5.4 --------------------------------
+(fixed) a bug when opening up multiple documents that are in the root of a
+drive in Windows.  Thank you once again francescoa@sourceforge's for the bug
+report and pointing out where it was messing up.
+
+
+#------------------------------- PyPE 1.6.5.3 --------------------------------
+(fixed) a bug when starting up PyPE with more than one relative paths to files
+as arguments.  Thanks francescoa@sourceforge's for the bug report.
+(discovered) the reason why on some linux systems splitting the window would
+not display the source.  Thank you Patrick Installe (did not email through sf)
+It turns out to not be a bug with wxPython on linux, but instead it is the
+result of one's theme in linux changing how many pixels for each window is
+required to be displayed.
+
+
+#------------------------------- PyPE 1.6.5.2 --------------------------------
+(fixed) a bug when creating a newline with tabs disabled and the cursor was in
+or immediately to the right of indentation.
+(fixed) on linux, opening a document would not display the source, this is
+seemingly a bug in wxSplitterWindow on linux.  The split argument I give is
+negative, so it should result in a size for the right panel.  It instead makes
+the left window non-existent.  The negative argument has been replaced with a
+positive argument based on the current notebook size.  No guarantees on
+whether either window will be created when the notebook is smaller than 25
+pixels wide.
+(should have been fixed) seemingly, some of you are having problems opening
+files in the root of a drive as well as opening relative paths (in windows).
+This has been working for me since PyPE 1.6.2, but I've added in one more
+thing.  If you STILL can't open relative paths or a file in the root of a
+drive, then the combination of:
+os.path.normcase(os.path.normpath(os.path.realpath(os.path.join(os.getcwd(), i))))
+is not sufficient to get the real and normalized path on Windows.
+
+
+#------------------------------- PyPE 1.6.5.1 --------------------------------
+(fixed) a small bug with the syntax highlighting submenu not updating what
+highlighting is being used in non-unicode versions.
+
+
+#-------------------------------- PyPE 1.6.5 ---------------------------------
+(changed) untitled documents are now labeled as such, rather than not having a
+name at all on the tab.
+(fixed) a bug where saving a new document, without any changes, would cause
+the tab to not be updated.
+(fixed) a bug where saving a new document would not add the file to the list
+of recently open documents.
+(fixed) when reloading a document from disk, PyPE used to allow one to undo to
+a point mid-STC.SetText where the document was empty.  This has been fixed.
+(made better) for those platforms that support radio items in the menu (wxMSW
+and wxGTK according to the docs), the syntax highlighting and encodings
+submenus will display a mark next to the current document's syntax
+highlighting and encoding.
+(fixed) previously when opening a document in windows, an msdos console would
+make a momentary appearance, then disappear.  This has been fixed with the
+use of os.spawnv().  Woo.  Thanks Luc Perrin (leblin@sourceforge) for pointing
+out the popping of the msdos prompt, I had gotten used to it, and didn't
+realize it bothered people.
+(two more bugs pointed out by Villy Dachev (labrett@sourceforge)):
+(fixed) even if tabs were turned on, if one were to create a new line (through
+the use of enter) while the cursor was in the indentation portion of a line,
+spaces would be inserted, rather than tabs.  Now tabs are inserted.
+(fixed) if tabs were turned on, the search for whether or not a new line (when
+hitting enter) should be indented more, would stretch to a previous line.
+This has been fixed, and the search is only ever on the current line.
+
+
+#------------------------------ PyPE 1.6.5-test ------------------------------
+(NOTES REGARDING UNICODE SUPPORT) I got some advice from a user who made their
+PyPE support utf-8 encodings, did some modification to PyPE, and have actually
+implemented the required pieces to give PyPE unicode support.  PyPE now
+supports the encodings; ascii, utf-7, utf-8, utf-16, utf-16-be, and utf-16-le,
+when using a version of wxPython that includes unicode support.  If you don't
+get the 'encodings' submenu in the 'edit' menu, then your version of wxPython
+does not support unicode.  In wxPython version 2.4.2.4u, there exists a bug in
+reverse searching through unicode files, so I've forced it to only search
+forwards.  It should be fixed when the STC gets updated with the latest
+scintilla (probably in the next version of wxPython).  There also exists
+multiple display bugs with multibyte unicode characters, one of them is listed
+here: http://sourceforge.net/tracker/index.php?func=detail&aid=828217&group_id=9863&atid=109863
+I'm sorry about the visual bugs, but there is nothing I can do about it.
+Other than that, unicode seems to work pretty well.  Bug reports from unicode
+users would be great.
+
+(changed) the standard behavior of home and end when word-wrap is enabled.  I
+didn't like that hitting 'home' would send you to the beginning of the entire
+line, rather than the displayed line, so a little spelunking into the STC docs
+resulted in an addition to the OnWrapL code.
+(removed) previously there had been a STC-default keybinding of CTRL-T to swap
+the current line and the one above it.  I've accidentally hit that one a few
+times (I'm a user of mozilla tabs), so I made the default to remove it.  Again
+in configuration.py, just set REM_SWAP to 0 to enable it.
+(added) when quitting PyPE with documents open, intra-document bookmarks are
+also saved (check the 'view' menu for bookmark stuff) and are re-set if those
+documents are loaded during the next execution of PyPE (with '--last' command
+line option, using file->Open Last, or even opening any file that was open
+during program exit using any method).
+(added) due to some tips from Villy Dachev (labrett@sourceforge), pointing out
+some unicode stuff...it turns out that unicode was very easy to add.  I just
+needed to check for the BOM characters at the beginning of a unicode encoded
+file and decode the file, then re-encode it when saving to a file.  There is
+graceful unicode conversion for standard ascii files when unicode text is
+inserted into them.  That is, they are automatically saved as utf-8.
+(added) encodings sumbenu to 'edit' menu.  This menu will allow you to change
+the encoding of the current file to another.  Changing from utf-16 to utf-8
+(for languages that support it) will reduce the storage requirements by about
+1/2.
+(added) a statusbar field to display the text encoding of the current file.
+(removed) information about lexers in pype.py
+(moved) 'style' menu into a 'syntax highlighting' submenu of 'view'.
+(found) nifty bug.  Hitting ctrl+<period> will let you view the tab to the
+right of the current tab.  Hitting Ctrl+del on a US keymap, or Ctrl+<numpad .>
+when numlock is off will also switch tabs.  It is nifty.
+(fixed) when tabs are enabled, creating a newline should insert tabs.
+(added) a variable called spaces_per_tab in configuration.py, which, when tabs
+are enabled, replace that many spaces with a tab when creating a new line,
+during indentation, etc., and will display tabs as that many spaces wide.
+
+
+#-------------------------------- PyPE 1.6.4 ---------------------------------
+(NOTES REGARDING UNICODE SUPPORT) I have little (or really no) experience when
+it comes to unicode support in Python.  I had mistakenly assumed that creating
+a binary using the unicode-supporting wxPython would have been sufficient to
+support unicode out of the box.  Unfortunately, this is not the case.  There
+is encoding and decoding that must be done on either end, and one must know
+which encoding to use in order to properly support unicode.  As that adds
+additional complication to PyPE, and to the handling of ALL files, regardless
+of what extended text is supported, I'll not be producing a binary with
+partial unicode support.  Those that have tried saving unicode files in 1.6.3
+will notice the problem during saving, and the fact that it doesn't work.
+While I am not ruling out the possibility of PyPE fully supporting unicode in
+the future, I don't believe I will be implementing it.  My apologies.
+
+(NOTES REGARDING DOCUMENTATION) I know that the documentation is out of date.
+I will update it when I get around to it.  I prefer to make PyPE better than
+to spend my time updating the documentation.
+
+(NOTES REGARDING VERSION REQUIREMENTS) I have changed the wxPython version
+required.  This is because the wxSTC has a known bug in version 2.4.1.2 that
+causes PyPE to exit without warning, possibly causing data loss.  This is bad.
+The wxSTC that is included with wxPython version 2.4.2.4 doesn't have this
+fatal bug.
+
+#The below bugs/suggestions were reported by francescoa in the PyPE forums at
+#Sourceforge or in email.  I have added the features or fixed the bugs.
+(fixed) a bug involving pasting to code snippets.
+(fixed) a bug involving changing code snippet focus and tab focus (they would
+do so simultaneously when changing code snippet focus).
+(fixed) running the currently open script in windows when the path to the file
+contains spaces.
+(removed) an import that was not used.
+(added) when using the find/replace dialog, the word that is currently under
+the cursor will be inserted into the find/replace dialog find text.
+(fixed) the find dialog will now find up or down, depending on the radio item
+in the dialog.  Previously it would ignore the 'up' or 'down' choice.
+(added) bookmarks within a file, for quickly and easily bookmarking certain
+locations for later perusal.
+
+#end of bugs/suggestions reported by francescoa
+
+(replaced) Added file over-write confirmation dialog.
+(removed) checkbox for 'readonly' files.  There seems to be no way to get the
+status of that 'open file in read-only mode'.  Which is completely retarded.
+(cleaned) replaced the indent/dedent code with a call to the STC command for
+indent/dedent.
+(replaced) the aforementioned calls to the STC indent/dedent with my previous
+code.  I prefer the behavior of my code to that of the STC indent/dedent code.
+(made better) the dirty flag on the each open document is now consistent with
+the last time the user saved thanks to EVT_KEY_UP, STC.SetSavePoint(), and
+STC.GetModify().  It is now more accurate and does not rely on the numerous
+hacks I did before to make it work.
+(fixed) a bug that occurred on windows machines when PyPE would try to delete
+the temporary parsing output when it was still opened by the parser.
+(added) a statusbar field that displays the current line and column.  It is
+only updated when a key is released (EVT_STC_POSCHANGED doesn't seem to work).
+To update the display if it is not being updated, tap the CTRL key.
+(added) events in the statusbar now have a timestamp when they occur.
+(moved) code for wrapping lines into configuration.py
+(added) ability to open all the documents previously open in your last PyPE
+session if you quit PyPE with those documents saved and have their tabs open.
+You can force this behavior on PyPE startup with the FIRST argument on the
+command line being '--last'.
+(changed) removed the various 'shortcuts' for generating the menus that ended
+up taking more lines and being more difficult to edit.  While not reducing the
+number of lines (significantly), it does increase readability of the menu
+code.
+(changed) realized that the ID definitions are only required when you need to
+compare event id numbers.  When you don't care, and just want an event to be
+posted, then event declarations are functionally useless.  Cleaned up a lot of
+global definitions.  Will likely have to re-insert such definitions for the
+likely future feature addition of user-definable key-bindings.
+(fixed, changed, added) more than a handful of other things that I didn't
+remember writing down in this changelog.
+
+
+#-------------------------------- PyPE 1.6.3 ---------------------------------
+(fixed) a visual bug that existed from the beginning.  When saving, it used to
+say 'open' on the button...now it says 'save'.  No big deal.  But still neat.
+(fixed) a problem with paths on windows systems with recursive environment
+variables (like HOME=%USERPROFILE%).
+(known bug) there exists a bug in automatic word wrapping.  This is within
+wxSTC, not PyPE.  For an example of this bug in action, I've provided some
+code in the wxWindows bug page here:
+http://sourceforge.net/tracker/index.php?func=detail&aid=816227&group_id=9863&atid=109863
+(slight refactor) I didn't like the repeated 'parent' references for different
+items when it wasn't so much a 'parent' as much as it was referring to the
+actual topmost frame of the application (especially when such references
+called functions that only existed in the topmost frame).  I've changed such
+references from 'parent' to 'root', where it makes sense, as well as creating
+some other names in other classes where appropriate.
+(fixed) a bug involving creating a dialog describing an exception when an
+exception occurred.
+(fixed) a few tiny bugs in find/replace (one would only notice the non-fatal
+bugs if one switched tabs during a find/replace dialog).
+(fixed) aforementioned bug from the 1.6 changelog with recently open files.  I
+completely forgot about it until I was reading the older changelogs today to
+remember how far PyPE has come.
+
+
+#-------------------------------- PyPE 1.6.2 ---------------------------------
+(fixed) apparently the textwrap module in Python 2.3 doesn't work the way I
+wanted it to.  As a result, text wrapping with Python 2.3 and the Windows
+binary didn't work in PyPE 1.6.1.  I've removed the code responsible, and it
+should work identically between Python 2.2 and Python 2.3.
+
+
+#-------------------------------- PyPE 1.6.1 ---------------------------------
+(fixed) small overflow error when creating unique temporary file for parsing.
+Unnoticed due to testing with python 2.3 which automatically casts overflowed
+ints to longs.
+(added) modifying word wrapping support.  Python 2.3 and Windows binary users
+of PyPE will use the textwrap module that is included with Python 2.3,
+everyone else gets the featureless 'wrap on newline or spaces' line wrapper.
+The included gpl.txt has now been wrapped using this feature.  Check the edit
+menu.
+(added) non-modifying word wrapping support.  Went looking through the STC
+documentation and found support for it.  Check the edit menu.
+(added) some small pieces that will allow future state information to be
+displayed in a field within the statusbar.
+
+
+#--------------------------------- PyPE 1.6 ----------------------------------
+(please note) I am going on vacation from September 3 to September 14.  Any
+bug reports will be silently ignored until at least the 15th.  If you have
+problems using 1.6, try using 1.5.1 until I get back to you.
+
+(made better) user profile path discovery.  Thanks Erik Lechak.
+(fixed) if the user profile cannot be saved, you will get a dialog informing
+you of this.  Previously, this was not the case, it would be silently ignored.
+(fixed) there was a bug in the recently open documents menu that would cause
+certain documents to be placed in the menu, and others not to be.  From now
+on, any document opened will be placed in the menu.  The document will have
+the file name and path normalized, as per os.path.normcase and
+os.path.normpath.  This will result in duplicate file entries until the menu
+gets cleared out of old entries for Windows users, as the menu thinks there is
+a difference between c:\doc.txt and C:\Doc.TXT on Windows.  You can speed this
+up by dragging and dropping 9 random text files onto PyPE.
+(fixed) a foolish bug that stopped me from using map anywhere in PyPE, I had
+assigned map to be a mapping for the find/replace dialog stuff.
+(changed) Code snippets are now optionally turned off in the view menu.  In
+turning off code snippets, then closing down and starting back up PyPE, you
+will no longer have a code snippet bar on the left side, nor will the hot keys
+work.  For those people who use code snippets, I'll do my best to not remove
+the functionality, and keep it an option, but may arbitrarily remove it in the
+2.x series, if development proceeds that far.
+(added) goto line as a menu command and hotkey.  I've been wanting it for a
+while, and it was requested by another user.  So I added it.
+(added) the option to add a search path for modules.  This is a setting that
+will be saved, and is of primary use for those using the windows binary on a
+system with Python installed.  To tell the truth, I've been using the binary
+for a while; it starts up faster.  This addition makes the binary as powerful
+as the source version.  To remove paths from the module search, one must delve
+into the history.txt file.  I really should write an abstracted class to
+handle pathmarks, shell commands and module paths...maybe in a later version.
+(fixed) inserted a minor change that fixed the autoindent for lines that
+contain slices.
+(changed) hitting F5 will now cause the slow parser to do its magic, and if it
+fails (due to a syntax error), the fast parser will kick in.  If you always
+want the fast parser to work, just leave a syntax error in your source until
+just before you run it.  When opening multiple files, they will be parsed in
+series with the slow parser.
+(cleaned up) some imports, variable declarations, etc.
+(tried to change but failed) I had attempted to make all parsing occur in the
+background with an additional thread so that the GUI wouldn't seize up.
+Unfortunately, there seems to be a bug with either Python garbage collection,
+wxStyledTextCtrl, or STCStyleEditor.py.  How do I know?  Because doing any
+operation that causes garbage to be generated (for the garbage collector to
+collect) while updating the wxStyledTextCtrl component with the STCStyleEditor
+module causes a garbage collection error in both Python 2.2 and Python 2.3.
+Certainly I can spend a few weeks testing and inserting locks around portions
+that could cause problems, but I will not.  On the upside, I'm really good at
+creating new events, event handlers, and other such things, so if there ever
+is a need for background processing (IE the garbage collection error gets
+fixed), It'll be a 5-minute job.
+(finally succeeded) the trick to getting background parsing lay within the use
+of os.popen4.  Keeping the parsing out of process fixed the problem I was
+having, and I could even use some threads to wait for the child.stdout.read()
+to complete.  Works fabulously.  It takes about 110% as long to do it as an
+external process (through the use of a=repr(obj), eval(a) and pipes), but that
+is OK as it no longer delays the GUI.  Ah HAH!  Spelunkers into the code will
+notice that I'm actually calling the editor itself...with an argument of
+'--parse', and I've also done away with runscript.py, by calling the editor
+itself using '--exec' as an argument.
+(changed parsing) the current parsing method does not use pipes or threads,
+and also limits itself to parsing one file at any one time (I've dropped 20
+files onto PyPE with the threading approach, and PyPE would not respond for
+a while).  Now PyPE is always responsive (as long as your processor has
+available cycles).
+(fixed) it seems as though runscript.py was never included in the windows-only
+version of PyPE.   No worries, it is now a part of the editor, so should just
+work.
+(fixed) there seemed to be a long-standing bug in calling PyPE with relative
+command line arguments for files to open.  This has been fixed.  There is a
+minor bug relating to the recently open files menu, but that'll be fixed when
+I get back from vacation.
+(fixed) my constant misspellings of hierarchy, I had been incorrectly spelling
+it as hierarchy.  Misspelling pointed out by my wife.
+
+
+#-------------------------------- PyPE 1.5.1 ---------------------------------
+(fixed) a little bug with autoindent after [else, try, except, finally]
+statements.  I forgot to add them into the autoindent stuff.
+(fixed) another little bug with autoindent.  It wouldn't autoindent after a
+[if, else, etc.] if the cursor was after the last character in the document.
+(fixed) another little problem with autoindent.  Had to do with certain kinds
+of nested declarations.  Damn, autoindent is almost more trouble than it is
+worth.
+
+
+#--------------------------------- PyPE 1.5 ----------------------------------
+(fixed) a little problem when finding line endings in some ambiguous files.
+Ambiguous files being files lacking any sort of line endings.
+(fixed) autocompletion popping up during typing in strings and comments.  Now
+it doesn't.  It would before.  A single line change.
+(removed) keywords from the autocomplete stuff.  Why?  Because having to hit
+return twice for the keywords [raise, return, pass] was annoying as hell.
+(removed) duplicate "import keyword" statement in parsers.slow_parser
+(fixed) autoindentation after a definition works better.  Not quite as good as
+idle yet, but getting there.
+(fixed) remember when you would hit 'F5' with the browsable source tree
+expanded and it would remove all your expansions?  This was due to clearing
+and reconstructing the tree.  Due to a user asking, "could you stop this",
+I've altered PyPE to remove this bulk clear and reconstruction.  It now
+updates the data as necessary, only removing or adding nodes as needed.  It is
+nifty.
+(fixed) with the introduction of the 'remember the last path that was open'
+when starting up PyPE again functionality, it introduced a bug.  If one
+attempted to use a pathmark or use the recently opened documents menu, it
+wouldn't clear the last open path.  This has now been remedied.  Any time you
+open a document using the recent menu, or use a pathmark, it will now change
+it properly (instead of forcing you to hit 'cancel' in the open dialog, then
+try to open again).  In other words, it works like you expect it to now.
+(stymied) Autoindent like idle does is going to be hard.  This is because idle
+actually does a large amount of parsing.  I have a feeling this is why it is
+sometimes sluggish.  I could be wrong.
+(good enough) I think the current autoindent code works just fine for most
+things.  It certainly isn't as complete as idle, but I think it would be out
+of line for the entire document to be parsed at every newline insertion.
+Unless the need bites me, I'm not going to insert dedent code for [raise,
+return, pass]
+(fixed) Dedenting on a single line will now keep your cursor in the original
+relative position to the remaining of the line.  It will also remove partial
+indentations before removing a full indentation.
+
+
+#-------------------------------- PyPE 1.4.2 ---------------------------------
+(fixed) some stupid bugs with loading and saving of history/pathmarks/shell
+commands into history.txt.  Sorry about that.  The 1.4 series of PyPE has
+proven itself to be the buggiest series ever.  *grumble*
+
+
+#-------------------------------- PyPE 1.4.1 ---------------------------------
+(fixed) a problem with pathmarks introduced by the 'remember the last path you
+were in when PyPE last closed' addition.  Yes, this fix gets it's own version.
+
+
+#--------------------------------- PyPE 1.4 ----------------------------------
+(added) in commenting/uncommenting feature thanks to Mark Tipton's adaptation
+of some codeEditor code.
+(added) in a few things to give the parsers a couple more options.  The slow
+parser is still slow.  It may be replaced by one that uses the compiler
+module.
+(change) there is a new 'slow' parser in included with PyPE parsers module.
+Instead of using the standard parser python module, it uses the compiler
+module.  This is better for a few reasons; it is faster, all the information
+that is needed for the browsable source tree, autocompletion, and even
+docstrings (for pulling out tooltips) are available.  Speaking of which...
+(submissions by Mark Tipton)
+cmt-001 - 08/06/2003: Added code to configuration.py to create a configuration
+directory to store user-related configuration information.  Added code to
+pype.py to store an opened file history that is displayed at the bottom of the
+file menu and that saves the directory of the last file opened and starts
+there the next time you start pype.
+cmt-002 - 08/06/2003: I couldn't get the 'runScript' function to work on
+Linux. It seemed to be related to files and directories with spaces in the
+name. The function was drastically modified (actually completely replaced)
+using code from PythonCard's codeEditor and seems to work on both Linux and
+Windows XP.
+(changed) now pathmarks, shell commands (as well as the new history.txt) are
+stored in <HOME>/.pype, where HOME is an environment variable set to be the
+path of your home directory, or the directory in which PyPE is currently
+running if the HOME environment variable is not set.
+(cleanup) After discovering that wxMenu will handle the majority of one's
+accelerator hotkey needs, I've cleaned up a bit of the code, removing some
+of what was remaining in MainWindow.OnKeyPressed.  Here's hoping that I don't
+forget to test some hotkey by the time 1.4 is released.
+(fixed) a few minor misspellings in some comments.
+(added) some help stuff.
+(added) a native win32 build of PyPE due to request, thanks to py2exe.  I'll
+try to remember to build a win32 native version every time.  If someone out
+there in linuxland wants to build a linux native version using Gordon
+McMillan's Installer (available at http://www.mcmillan-inc.com/install1.html),
+I would happily post it.
+
+
+#-------------------------------- PyPE 1.3.1 ---------------------------------
+(added) a version checker to PyPE.  If you are running a version of wxPython
+before 2.4.1.2, and PyPE worked before I added this, please email me with the
+version string of wxPython you were using, which can be found by running this
+(without the single quotes) python -c "import wx;print wx.VERSION_STRING"
+To email me, head to http://www.ics.uci.edu/~jcarlson/contact.html
+
+
+#--------------------------------- PyPE 1.3 ----------------------------------
+(confirmed) As believed, PyPE 1.2 and later work with Python 2.3.  No worries
+about upgrading, but no requirements either.  I'll be developing with 2.2, but
+will test all releases from now on with 2.3 as well.  I don't foresee any
+issues involved with the transition to Python 2.3 in the future.  In the next
+6 months, if I happen to use features added in Python 2.3 (like enumerate), I
+will make sure to include a work-alike for those of us who migrate a few
+months after a Python release.
+(changed) now when you open a .txt file the text styling will be used.
+(changed) the text style now uses a monospaced font (because non-monospaced
+text in an editor like PyPE is just plain ugly).
+(fixed) a little bug in MainWindow.OnDrop, where a failed file open should
+open up a dialog explaining why the open failed, but would instead cause
+another exception.  Ick.
+(added) a very rudimentary hierarchical python parser.  It only pays attention
+to leading spaces in function and class definitions.  That is why I call it
+rudimentary.  All bug reports regarding the hierarchical python parser will be
+ignored.  Patches for making the parser better will be merged, likely used,
+and properly attributed.
+(added) "autocompletion" dropdown for keyword/function/method completion.
+Accessible via CTRL-<space>.
+(added) a browsable source tree per open document.  Check the view menu.  It
+uses an iterative method rather than a recursive method which could go beyond
+the interpreter's recursion limit for very deep source files.
+(left in) the stub for adding tooltips.  I dig tooltips, but I don't really
+want to add the code for sucking tooltips out of the first line of a method or
+module's docstring.  Maybe 1.4, maybe.
+(fixed) a bug with dropping files to open onto an already open document.
+(fixed) a bug where cut/paste/undo/redo by keyboard wouldn't mark the document
+as being 'dirty' with the little asterisk next to the file name.  Now whenever
+one uses cut/paste/undo/redo causes the document to become dirty, even when
+nothing actually changes.  I think this is better.
+(discovered) window.SetFocus(), a nice little thing that gives keyboard focus
+to objects derived from wxWindow (most everything is), thanks to oZt that
+popped into the #python channel who was looking for such a thing, that made me
+curious as well.  Now things like double-clicking on code-snippets and on
+the browsable source tree will now give source editor focus.  Sweet.
+(fixed) some bugs with portions of the window not redrawing.
+(added) two parsers for the browsable source tree.  A fast one, and an
+accurate one.  The fast one can parse PyPE 1.3 in .08 seconds.  The accurate
+one can parse PyPE 1.3 in 4 seconds.  These times are on my PII-400.  By
+default, the fast one will be in use, this is for two reasons; the first being
+speed (no one wants a slow source browser refresh), the second being that the
+slow parser (which uses the parser module) dies during the creation of the
+syntax tree if there are any syntax errors in your source, making it somewhat
+useless during development.  If anyone can offer anything better than either
+for what they are doing, I would be very happy to give you credit for your
+work.  Any bug reports on the fast parser being inaccurate will be ignored.
+Any bug reports on the slow parser being slow or not working on non-working
+code will be ignored.  If you'd like to test the parsers, give this a try:
+'./parsers.py pype.py' to find out how fast either would take to parse PyPE on
+your system.  One thing to note is that the slow parser, because it uses the
+parser module, has a few problems with line numbers (many lines that are in
+triple quoted strings are considered one line, and comment lines are discarded
+completely), so the slow parser uses the fast parser to get line numbers.
+Kinda funny really.  The accurate one (in terms of hierarchy) is completely
+off in terms of line numbers.  HAH!
+(fixed) a little bug regarding comment insertion.  If one would hit cancel, it
+would have caused an exception...that was ignored.
+(confirmed) still works with Python 2.2 and 2.3.
+
+
+#--------------------------------- PyPE 1.2 ----------------------------------
+(changed) pathmarks are always saved on program exit.
+(added) command line argument support with the use of os.path.abspath for all
+the relational and absolute path references for all systems.  I like when what
+I need has already been implemented.  Multiple file arguments also just work.
+(fixed) a bug with path normalization and whether a file was open already.
+(forgot) to remove some of the drag and drop stuff in the previous version...
+(added) drag and drop file support.  Enabled by default, but can be disabled
+in the text-editing portion for text dnd support.  Why don't I just write a
+control for dnd text and files?  Because I REALLY don't want to, and don't
+know if it can even be done (I have a feeling it can be, just not with
+wxFileDropTarget and wxTextDropTarget).
+(discovered) os.linesep, a great little declaration that has replaced a few if
+then elif then else statements in configuration.py.  I knew there had to be
+something like that in the os module.
+(added) an 'open module' functionality similar to what I remember of older
+IDLE, though this one searches in an identical fashion to the way an 'import'
+statement would in later versions of Python, that is, it includes hierarchical
+module importing, as well as the current path in the search for a module.
+(cleaned) some duplicated code out.  Opening a file, a module, or dropping a
+file onto PyPE causes the same code to run.  Isn't that nice?  I think so.
+Code duplication leads to bugs.  Bugs are bad.
+(fixed) save as dialog would offer multiple wildcards, made it give *.*
+instead so that I wouldn't have to write automatic file extension code for
+right now.  This may actually be added by the time this minor release is
+released.
+(fixed) if you loaded a document and undo once, it will clear the document.  I
+kept forgetting to get rid of this, but thanks to the project's first official
+bug report on sourceforge, I had the reason to add the line required to
+pype.PythonSTC.SetText - thanks anonymous bug poster.
+(fixed) that REALLY ugly code for changing style update information.  It used
+to create an entirely new page, load the text, copy all the state information
+(except for undo), then replace the current page.  It has now been replaced by
+the same style change that is done upon loading, and it just works.  I like it
+when that happens.  No messy copying, wxStyledTextCtrl just works.
+(made pretty) the menu item hotkeys used to be vertically aligned as best I
+could by hand...then I noticed how they do menus in the wxPython demo; tabs.
+Repaired all the menu items with tabs, and now they are consistent, if not
+pretty (insert maniacal laugh).
+(made better) you know how pathmarks used to always have that menu that was
+filled up, even when no pathmarks were being used?  Not anymore.  They now
+change as your pathmarks are changing.  How's that for spiffy?  Idea thanks to
+the wxPython demo app.
+(fixed) previously when one would go step by step in the find/replace dialog,
+it wouldn't select the next found object when a replacement had been made.
+This has been fixed.
+(fixed) small bug that caused an exception after finding and replacing all, it
+wouldn't kill PyPE, but it was a foolish mistake.
+(added) code snippet support.  See the FAQ portion of the readme for how to
+use it.  They are available as menu commands in the lower portion of the view
+menu.
+(fixed) when adding or deleting pathmarks, when the window pops up again, it
+used to select the first entry every time, it now selects the previously
+selected entry.  This should stop you from losing your first pathmark if you
+accidentally hit 'OK' on a deletion.
+(added) shell command execution support.  Uses os.spawnv in windows,
+os.spawnvp everywhere else that supports it.  The windows version is not able
+to scan your paths to find an executable (hence why it is 'v' and not 'vp').
+Whether this is a limitation of something in windows, python or otherwise, I
+have no idea.  Just don't blame me.  Dynamic menus abound.
+(cleaned) up some exception dialog stuff.  Removed some duplicated code.
+(reorganized) the menus somewhat.  Items have been relocated to menus that are
+much more intuitive.
+(changed) along with pathmarks; code snippets and shell commands are saved at
+program exit.  All three are stored in pathmarks.py
+
+
+#--------------------------------- PyPE 1.1 ----------------------------------
+(cleaned) I did some house cleaning and started using wxNewId to generate
+event ids rather than doing them manually.  This required a few tweaks to the
+menu generation code, but it cleaned up nicely.  It is also quite consistent
+now (wheee, consistency).
+(cleaned) I also added a few more functions to deal with previously opened
+files easier.
+(added) wxSplitterWindow control to hold some extra goodies on the left of the
+window.  Just wait for what I have in store for you.  As the controls that I
+have added do not support keypress events (other than the menu alt-commands),
+hot-keys are only useful when a document is open, or when you haven't touched
+the splitter bar or other controls after documents have been closed.
+(confirmed) The line ending corruption fix for 1.0.1 seem to be working great.
+(fixed) Discovered and removed a bug when inserting a comment would mess up
+line endings in the surrounding lines, making it look like there was an extra
+blank line inserted on windows systems.  Replaced a '+1' with
+'+len(win.format)'.  I like easy fixes.
+(tweaked) Line ending detection so that it does something a bit more
+intelligent.  It works better on strange files now.
+(fixed) undoing and redoing previously wouldn't mark the document as being
+'dirty', this is fixed and merged with the code for cut and paste making the
+document dirty through the use of a dictionary.  This brings up the question
+as to whether or not ALL keypress events should just be a dictionary lookup
+rather than a sequence of if, elif, else statements.  They probably should.
+Maybe in the next minor version.
+(removed) the aforementioned splitter window for now.
+(cleaned) up the handling of many of the hotkeys that are used via a
+ctrl-<key> combinations.  Basically all but two of the ctrl hotkeys are in a
+dictionary for O(1) lookups.  I like that.
+(reorganized) some of the menu command locations.
+(added) pathmark support.  Viewing pathmarks, editing pathmarks, deleting
+pathmarks and saving pathmarks to the configuration file.  MMM, pathmarks.
+(added) more status bar text updates, like closing, opening, creating new, and
+other such things.  I like updates.
+(fixed) undoing and redoing of changing tabs is now done by the entire block
+that was tabbed/untabbed, not by the individual line as before.
+(discovered) how to use the shift and control clicking of the scope-based
+collapsable blocks.  Updated the help to explain how they work.
+(contemplated) adding drag and drop support.  After spending some time mucking
+around it, I have decided it can wait until the next minor release.
+(contemplated) adding code snippet support.  It's where you have a listing of
+named code snippets that double clicking will cause to replace the current
+selection (or insert at the current cursor position).  I'm trying to decide
+how/where to place the code snippets.  I've come to enjoy having a full screen
+for editing code, and to lose some of it to code snippets, almost seems
+strange.  It'll probably be in the next point release with file drag and drop
+support.
+
+
+#-------------------------------- PyPE 1.0.1 ---------------------------------
+(fixed) Thanks to a message from Lunar Linux guru Jeff Hodges, I was turned on
+to Pychecker.sourceforge.net and have discovered two previously unknown
+unpassed arguments to functions.  While pychecker is useful, it returns a lot
+of variable not used errors.  I'll use it before every .n version release
+after I do a couple more feature additions.
+(fixed) Also thanks to Jeff Hodges, I discovered a bug in 1.0 that will tend
+to produce line endings that are \r\r\n...which is wrong, for ANY system.  It
+is now fixed.  It had to do with reading and writing files in ascii mode, not
+in binary mode.  Apparently it makes a difference in terms of line endings.
+Who knew?
+
+
+#--------------------------------- PyPE 1.0 ----------------------------------
+Initial version

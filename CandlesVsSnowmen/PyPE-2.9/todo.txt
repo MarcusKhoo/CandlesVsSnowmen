@@ -1,0 +1,178 @@
+
+Key for the todo items:
+- Not going to make it.
+* Done.
+? Probably didn't make it here, may make it later.
+
+Switch from all-in-one to plugin style (for easier source maintenance).
+Switch to use wx namespace.
+
+Beta 1:
+* browsable source tree (by name)
+* browsable source tree (by line number)
+* this document todo/etc list
+*    (line number, importance, text)
+- global document todo/etc list
+-     (document name, line number, importance, text)
+* find bar for this file
+* logger
+* document ordering
+* document reordering
+* document icons (everywhere)
+* made window remember size and position
+* made subwindows remember size and position
+* tooltips now understand __init__ and __new__
+(done in 2.3) - interpreter
+* shell command support (embedded within window)
+* filesystem browser with pathmarks
+* workspace management
+- project management
+* per-filetype preferences
+
+Beta 2
+* Add a replace workspace mechanism.
+* Find in files as a tab on the bottom.
+* Make the location of both tabs options (right/left, top/bottom).
+* Save search results (as text).
+* Select whole lines on indent/dedent.
+* Better caps support in filenames on windows/mac.
+* Keyboard command for 'close find bar'/'close replace bar'
+* Keyboard command for 'find previous'
+* Make optional drag and drop file support on STC instances.
+* Smart Case
+* Replace In Selection
+- Save/load search criteria (like workspace). (used history instead)
+
+
+2.1:
+* per-filetype preferences
+* Fix per-document type saving and such...
+* Fix dragging of edited documents in documents tab...
+
+2.2:
+* Add support for #encoding in python files (on open/save, but do not change).
+? Add search support for unicode/#encoding defined files that are not open.
+(done in 2.3) * Add PyShell from PyCrust as a Python console, but use the
+external process support to run the shell in another process.  Caveat:
+  * PyShell would not get all the really neat introspection capabilities
+  without significant additional work (which I probably won't ever have time
+  for)
+(used thread in 2.4) - Use external command support to spawn persistant slow
+parser for tooltips, calltips, and better parsing.
+(done in 2.3) * Use optional listening socket to support later callings of
+(done in 2.2.2) PyPE pushing document opening into a single PyPE instance
+("One PyPE")
+
+
+2.5:
+* Add caret width setting (global for all editors).
+* Start/end selection menu item/hotkey.
+* Fix hotkeys for ctrl+key
+* Fix hotkeys for alt+key
+* class/function filtering in the tree stuff
+? See about using XML-RPC, like idle.
+* Look into macro recording/playback functionality.
+  * Partially implemented, includes:
+    * cut/copy/paste, typing, most built-in scintilla functionality, keyboard
+      navigation with arrows, home, end, etc., backspace, delete, ...
+    * Most menu commands with or without shortcuts
+    * will need to come up with a reasonably macro'd list.
+* Document abstraction for modifying documents via script in debug mode.
+* Something like keymap["ctrl-d"] = lambda doc:doc.delete_current_line()
+
+2.6:
+* Add indicator for macro recording.
+* Update filter list columns/save column width.
+* Add line-based document abstraction.
+* Move all document modification to PythonSTC definition, use metaprogramming
+  techniques.
+* Document filtertable semantics
+* Add optional context-sensitive filter
+* Add "find definition" menu item/hotkey: switches to the filter tool, and
+  enters in the "current word".
+* Remove all unnecessary 0-width columns in list controls.
+* Need a method to allow for better/easier trigger expansions (autoindent,
+  easier cursor positioning, etc.).
+* Option to not save BOM to UTF encoded files when a coding line is in the
+  Python source.
+* Option to do nothing/open for editing/run macro on double click.
+Move PythonSTC definition out of pype.py
+
+2.6+/2.7:
+* Hotkey support for macros.
+If I can get more than one indicator working, or perhaps disable syntax
+highlighting, getting a remote pair/group programming setup similar to
+SubEthaEdit would be quite neat.
+    The newest version of scintilla (not yet wrapped for wxPython) supports
+    the use of up to 32 indicators.  Plenty for any pair/group programming
+    task.  Need to decide on some sort of editing workflow.
+
+* Optional indicators for stdout/stderr from Python and Command shells.
+* Display Macro buttons as text or bitmaps.
+
+Fix Shells for Mac
+* Fix line number column width for large files
+* Check/fix %L for triggers
+
+2.6.6+/2.7+
+* Better autocomplete for self. methods
+"Find all uses of fcn X" (maybe use Search tab?)
+* Add help for "what to expect when coming from another editor"
+* Add help for the sample macros
+* Only create the directory tree for the Browse... tab when it is first clicked
+* Add option to detect and define where the Python executable is
+* Check on pathmarks (fixed)
+* Check on workspaces (verified working)
+* Transition completely to wx namespace
+* Add "Ignore Dotted Directories" to Search tab.
+* Fix "wrap try/except/finally"
+* --standalone command line option for flash drive distributions.
+
+2.7/2.8:
+* Add support for reading the following Vim options from the beginning/end of
+* files that do not currently have a 'history':
+    * cursorline, cul, nocursorline, nocul (Highlight Current Line)
+    * expandtab, et, noexpandtab, noet (Use Tabs)
+    * shiftwidth, sw (Set Indent Width)
+    * softtabstop, sts (Set Indent Width) (shiftwidth preferred)
+    * tabstop, ts (Set Tab Width)
+Add "Vim smartcase" and support for the Vim option:
+    smartcase, scs, nosmartcase, noscs
+    This forces "match case" when capital letters are inserted into findbar
+    searches.
+Add support in the future for:
+    ignorecase, ic, noignorecase, noic (Match Case)
+        delayed because it requires faking a findbar state
+
+* Fix memory leak in long term linux use
+* Switch to single timer instance for all subshells
+* Check keybindings on linux macro hotkeys
+    * Known issue: Ctrl + F* hotkeys don't work in Kubuntu
+    * They work fine in Xubuntu
+* Check "run document" macro on linux
+    * Replaced "run document" macro with "File -> Run Current File" menu item.
+Try to reproduce/fix cut/copy issue on linux
+    Cannot replicate in Ubuntu
+    Cannot replicate in Kubuntu
+    Cannot replicate in Xubuntu
+    Cannot replicate in Windows
+    Could be wxPython version issue, awaiting response from user
+
+* Add "split document" ability
+Fix autoindent for *ML.
+* Make the Search tab run its search in a background thread, posting events to
+  the main GUI (will remove wx.Yield() issues)
+
+See if any "Code Browser" functionality can be duplicated; tree view,
+smalltalk-like view, etc.
+Add new folding commands (like Ctrl+Shift+[1-9] from:
+http://www.compusol.org/ecco/outlining.html ).
+
+Fix folding state saving/restoring.
+Replace View -> Split * commands with a 'split in second window' command.
+
+2.9:
+Add multi-language support via I18N or equivalent.
+Add -w workspace management.
+Switch to optparse for command line argument parsing.
+* Fix fast tree updates and sorting.

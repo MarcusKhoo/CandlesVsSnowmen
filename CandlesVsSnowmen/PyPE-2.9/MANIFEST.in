@@ -1,0 +1,29 @@
+# include all python files
+global-include *.py
+global-include *.pyw
+
+# include the macros, plugins and icon directories
+graft macros
+graft plugins
+graft icons
+
+# include information in this directory
+include *.txt
+include *.html
+include *.rc.cfg
+include PKG-INFO
+
+# include this file, to ensure we can recreate source distributions
+include MANIFEST.in
+
+# exclude all of the subversion metadata
+global-exclude *.svn*
+global-exclude .svn/*
+global-exclude macros/.svn/*
+global-exclude macros/samples/.svn/*
+global-exclude icons/.svn/*
+global-exclude plugins/.svn/*
+
+#exclude all bytecode
+global-exclude *.pyo
+global-exclude *.pyc

@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: PyPE
+Version: 2.6.3
+Summary: Python Programmers' Editor
+Home-page: http://pype.sf.net/
+Author: Josiah Carlson
+Author-email: jcarlson@uci.edu
+License: GNU GPL v.2
+Description: A Python-oriented editor with support for multiple platforms.
+Platform: any
