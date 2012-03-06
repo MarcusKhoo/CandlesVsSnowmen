@@ -2,6 +2,8 @@ CandlesVsSnowmen
 
 This game kinda reminds you of AngryBirds. Well...just that the birds are the candles and the pigs are the snowmen. This game actually focuses more on physics rather than the gameplay itself. The goal of the game is to melt all snowman with 3 candles.
 
+Written in python with Panda3D with bullet physics engine for PC
+
 Features:
 - 5 levels comprising different kinds of structures and blocks
 - Firing of projectiles at different strength and angle
